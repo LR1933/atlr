@@ -1,4 +1,7 @@
-A private R package
+A private R package with no license due to assuming no one else uses this package.
+
+Install the package.
+devtools::install_github('lijiaqi-github/R.package')
 
 The following is the code added to Rprofile.site when R version is updated.<br>
 ```
@@ -14,7 +17,7 @@ The following is the code added to Rprofile.site when R version is updated.<br>
      suppressPackageStartupMessages(library(DescTools))
      suppressPackageStartupMessages(library(tidyverse))
      suppressPackageStartupMessages(library(data.table))
-     library(thecodestack)
+     library(MCV)
 
      cat("Package loading accomplished")
 
