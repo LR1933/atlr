@@ -1,4 +1,4 @@
-A private R package with no license due to assuming no one else uses this package.
+A private R package with no license due to assuming no one else will use this package.
 
 Install the package.
 devtools::install_github('lijiaqi-github/R.package')
