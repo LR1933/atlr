@@ -598,8 +598,8 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
 
 #' Title
 #'
-#' @param FG.outcome
-#' @param FG.exposure
+#' @param FG.time
+#' @param FG.status
 #' @param FG.model
 #' @param FG.n
 #'
@@ -607,9 +607,9 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
 #' @export
 #'
 #' @examples
-Fine.Gray.HRs <- function(FG.outcome,FG.exposure,FG.model,FG.n){
-    FG.cox_model <- cmprsk::crr(FG.outcome,
-                                FG.exposure,
+Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
+    FG.cox_model <- cmprsk::crr(FG.time,
+                                FG.status,
                                 FG.model,
                                 failcode = 1,
                                 cencode = 0
@@ -782,6 +782,17 @@ GEE <- function(GEE.analysis_data,
     )
     print(noquote(GEE.observation))
 }
+
+#### Bulid a theme #############################################################
+#' @importFrom rstudioapi create_theme add_theme
+#' @export
+mytheme <- function() {
+    theme_file <-
+        system.file("themes/dark.rstheme", package = "MCV")
+    add_theme(theme_file)
+    create_theme("Dark")
+}
+
 
 #### Bulid a package ###########################################################
 # devtools::load_all() # loading the latest package for testing
