@@ -1,1 +1,1 @@
-# R.package
+A private R package
