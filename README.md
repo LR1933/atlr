@@ -2,7 +2,7 @@ A private R package with no license due to assuming no one else will use this pa
 
 Install the package.
 ```
-devtools::install_github('lijiaqi-github/R.package')
+devtools::install_github('lijiaqi-github/R.package.MCV')
 ```
 The following is the code added to Rprofile.site when R version is updated.<br>
 ```
