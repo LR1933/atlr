@@ -10,3 +10,4 @@ Depends:data.table
 Encoding: UTF-8
 LazyData: true
 Theme: themes/dark.rstheme
+Inst/inst/etc/Rprofile.site
