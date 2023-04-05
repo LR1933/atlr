@@ -2,7 +2,6 @@ Package: MCV
 Type: A private R package
 Title: A stack for personal functions
 Version: 2023.03.31
-Inst/inst/etc/Rprofile.site
 Author: Lijiaqi
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
