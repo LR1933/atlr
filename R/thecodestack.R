@@ -1,5 +1,6 @@
 ## the package for R functions and packages ###################################3
-## 2023/01/01 version ##########################################################
+## 2023/04/05 version ##########################################################
+# shift + ctrl + alt + R
 
 # *rounding* ###################################################################
 #' Title
@@ -127,6 +128,120 @@ fs <- function(fs.varibale,fs.group = NA){
     fs <- as.data.table(fs)
     setnames(fs, 1, "Groups")
     return(fs)
+}
+
+# *update Japanese .calender* ##################################################
+#' Title
+#'
+#' @param J.calendar
+#'
+#' @return
+#' @export
+#'
+#' @examples
+update.J.cal <- function(J.calendar){
+    for (i in 1:15) {
+        old_val <- paste0("大", i, "\\.")
+        new_val <- paste0(1911 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:64) {
+        old_val <- paste0("昭", i, "\\.")
+        new_val <- paste0(1925 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:35) {
+        old_val <- paste0("平", i, "\\.")
+        new_val <- paste0(1988 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    return(J.calendar)
+}
+
+# *move column* ################################################################
+#' Title
+#'
+#' @param data
+#' @param col_name.old
+#' @param col_name.new
+#'
+#' @return
+#' @export
+#'
+#' @examples
+move.col <- function(data, col_name.old, col_name.new) {
+    # move col_name.old to the next column of col_name.new
+    if (col_name.new %in% c(1, "F", "f", "First", "first")) {
+        new_pos <- 0
+    } else {
+        new_pos <- which(colnames(data) == col_name.new)
+    }
+    current_pos <- which(colnames(data) == col_name.old)
+    `%!in%` = Negate(`%in%`)
+    if (!col_name.old %in% names(data) |
+        (!col_name.new %in% names(data) &
+         col_name.new %!in% c(1, "F", "f", "First", "first"))) {
+        stop("Column name '", col_name.old, "' not found in data set")
+    }
+    if (col_name.new == col_name.old) {
+        stop("Column '", col_name.old,
+             "' is same with '", col_name.new,
+             "'")
+    }
+    if (new_pos == current_pos - 1) {
+        stop("Column '", col_name.old,
+             "' is already in the designated position")
+    }
+    # Move the column to the new position
+    if (new_pos == 0 & current_pos < ncol(data)) {
+        new_order <-
+            c(current_pos,1:(current_pos - 1),(current_pos + 1):ncol(data))
+    } else if (new_pos == 0 & current_pos == ncol(data)) {
+        new_order <- c(current_pos, 1:(current_pos - 1))
+    } else if (new_pos == 1 & current_pos < ncol(data) & current_pos != 1) {
+        new_order <-
+            c(1, current_pos,2:(current_pos - 1),(current_pos + 1):ncol(data))
+    } else if (new_pos == 1 & current_pos == ncol(data) & current_pos != 1) {
+        new_order <- c(1, current_pos, 2:(current_pos - 1))
+    } else if (current_pos == 1 & new_pos < ncol(data) & new_pos > 1) {
+        new_order <- c(2:new_pos, current_pos, (new_pos + 1):ncol(data))
+    } else if (current_pos == 1 & new_pos == ncol(data) & new_pos > 1) {
+        new_order <- c(2:new_pos, current_pos)
+    } else if (new_pos > current_pos &
+               new_pos < ncol(data) & new_pos != 1 & current_pos != 1) {
+        new_order <-
+            c(1:(current_pos - 1),(current_pos + 1):new_pos,current_pos,
+              (new_pos + 1):ncol(data))
+    } else if (new_pos > current_pos &
+               new_pos == ncol(data) & new_pos != 1 & current_pos != 1) {
+        new_order <-
+            c(1:(current_pos - 1), (current_pos + 1):new_pos, current_pos)
+    } else if (new_pos < current_pos &
+               current_pos < ncol(data) & new_pos > 1 & current_pos != 1) {
+        new_order <-
+            c(1:new_pos,
+              current_pos,
+              (new_pos + 1):(current_pos - 1),
+              (current_pos + 1):ncol(data)
+            )
+    } else if (new_pos < current_pos &
+               current_pos == ncol(data) & new_pos > 1 & current_pos != 1) {
+        new_order <-
+            c(1:new_pos, current_pos, (new_pos + 1):(current_pos - 1))
+    }
+
+    if (ncol(data[, ..new_order]) != ncol(data)) {
+        stop("check function")
+    } else {
+        message(
+            "Column '",
+            col_name.old,
+            "' has been moved to the position next to '",
+            col_name.new,
+            "'"
+        )
+        return(data[, ..new_order])
+    }
 }
 
 # *Cochran Armitage Trend Test* ################################################
