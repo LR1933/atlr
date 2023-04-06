@@ -243,6 +243,39 @@ move.col <- function(data, col_name.old, col_name.new) {
         return(data[, ..new_order])
     }
 }
+# for test
+# dt <- data.table(matrix(rnorm(20), ncol=5))
+# move.column(dt, "V1", "V2")
+# move.column(dt, "V1", "V3")
+# move.column(dt, "V1", "V4")
+# move.column(dt, "V1", "V5")
+#
+# move.column(dt, "V1", "V5")
+# move.column(dt, "V2", "V5")
+# move.column(dt, "V3", "V5")
+# move.column(dt, "V4", "V5")
+#
+# move.column(dt, "V2", "V1")
+# move.column(dt, "V3", "V1")
+# move.column(dt, "V4", "V1")
+# move.column(dt, "V5", "V1")
+#
+# move.column(dt, "V5", "V1")
+# move.column(dt, "V5", "V2")
+# move.column(dt, "V5", "V3")
+# move.column(dt, "V5", "V4")
+#
+# move.column(dt, "V2", "V3")
+# move.column(dt, "V2", "V4")
+#
+# move.column(dt, "V4", "V4")
+#
+# move.column(dt, "V3", "V2")
+# move.column(dt, "V4", "V2")
+#
+# move.column(dt, "V3", 1)
+#
+# move.column(dt, "V1", 1)
 
 # *Cochran Armitage Trend Test* ################################################
 # dose <- matrix(c(10,9,10,7, 0,1,0,3),

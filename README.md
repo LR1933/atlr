@@ -6,6 +6,7 @@ devtools::install_github('lijiaqi-github/R.package.MCV')
 ```
 The following is the code added to Rprofile.site when R version is updated.<br>
 ```
+file.edit(file.path(R.home("etc"), "Rprofile.site"))
 ################################################################################
     options(scipen = 8,digits = 8)
     grDevices::windowsFonts(Times = grDevices::windowsFont("Times New Roman"))
