@@ -155,6 +155,7 @@ update.J.cal <- function(J.calendar) {
         new_val <- paste0(1988 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
+
     for (i in 1:50) {
         old_val <- paste0("令", i, "\\.")
         new_val <- paste0(2018 + i, "\\.")
