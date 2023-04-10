@@ -140,6 +140,9 @@ fs <- function(fs.varibale,fs.group = NA){
 #'
 #' @examples
 update.J.cal <- function(J.calendar) {
+    cat(
+        "The conversion range of this function is 大正1年(1912) to 令和50年(2068)."
+    )
     for (i in 1:15) {
         old_val <- paste0("大", i, "\\.")
         new_val <- paste0(1911 + i, "\\.")
@@ -155,6 +158,7 @@ update.J.cal <- function(J.calendar) {
         new_val <- paste0(1988 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
+
     for (i in 1:50) {
         old_val <- paste0("令", i, "\\.")
         new_val <- paste0(2018 + i, "\\.")
@@ -181,9 +185,6 @@ update.J.cal <- function(J.calendar) {
         new_val <- paste0(2018 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
-    cat(
-        "The conversion range of this function is 大正1年(1912) to 令和50年(2068)."
-        )
     return(J.calendar)
 }
 
