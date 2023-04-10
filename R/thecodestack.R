@@ -139,22 +139,51 @@ fs <- function(fs.varibale,fs.group = NA){
 #' @export
 #'
 #' @examples
-update.J.cal <- function(J.calendar){
+update.J.cal <- function(J.calendar) {
     for (i in 1:15) {
         old_val <- paste0("大", i, "\\.")
         new_val <- paste0(1911 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
-    for (i in 1:64) {
+    else for (i in 1:64) {
         old_val <- paste0("昭", i, "\\.")
         new_val <- paste0(1925 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
-    for (i in 1:35) {
+    else for (i in 1:31) {
         old_val <- paste0("平", i, "\\.")
         new_val <- paste0(1988 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
+    else for (i in 1:50) {
+        old_val <- paste0("令", i, "\\.")
+        new_val <- paste0(2018 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+
+    for (i in 1:15) {
+        old_val <- paste0("大正", i, "\\.")
+        new_val <- paste0(1911 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    else for (i in 1:64) {
+        old_val <- paste0("昭和", i, "\\.")
+        new_val <- paste0(1925 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    else for (i in 1:31) {
+        old_val <- paste0("平成", i, "\\.")
+        new_val <- paste0(1988 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    else for (i in 1:50) {
+        old_val <- paste0("令和", i, "\\.")
+        new_val <- paste0(2018 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    cat(
+        "The conversion range of this function is 大正1年(1912) to 令和50年(2068)."
+        )
     return(J.calendar)
 }
 
@@ -233,7 +262,7 @@ move.col <- function(data, col_name.old, col_name.new) {
     if (ncol(data[, ..new_order]) != ncol(data)) {
         stop("check function")
     } else {
-        message(
+        cat(
             "Column '",
             col_name.old,
             "' has been moved to the position next to '",
