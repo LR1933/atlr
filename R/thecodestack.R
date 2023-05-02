@@ -13,10 +13,10 @@
 #'
 #' @examples
 round_function <- function(data, n){
-    data_sign <- sign(data)
-    data      <- abs(data) * 10 ^ n
-    data      <- data + 0.5
-    data      <- trunc(data)
+    data_sign  <- sign(data)
+    data       <- abs(data) * 10 ^ n
+    data       <- data + 0.5
+    data       <- trunc(data)
     return(data_sign * data / 10 ^ n)
 }
 
@@ -33,7 +33,6 @@ round_function <- function(data, n){
 # exp(sum(log(x)/length(x)) # geometric mean
 # exp(mean(log(x)))
 geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
-
 
 # *dummy variable* #############################################################
 #' Title
@@ -61,43 +60,64 @@ dv <- function(dv.variable,dv.n){
 #' Title
 #'
 #' @param fvar.variable
+#' @param fvar.bar
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fvar <- function(fvar.variable){
-    if (nlevels(as.factor(fvar.variable)) <= 10) {
+fvar <- function(fvar.variable, fvar.bar = TRUE){
+    fvar.variable.label <- sub(".*\\$", "", deparse(substitute(fvar.variable)))
+    if (fvar.bar) {
+        if (nlevels(as.factor(fvar.variable)) <= 10) {
+            print(tab1(fvar.variable,
+                       missing = TRUE,
+                       bar.values = "frequency",
+                       cex = 1,
+                       cex.names = 1,
+                       main = paste("The frequency distribution plot of",
+                                    fvar.variable.label),
+                       xlab = paste(fvar.variable.label, "values"),
+                       ylab = "Frequency",
+                       col = "black"))
+        }
+        else{
+            print(tab1(fvar.variable,
+                       missing = TRUE,
+                       bar.values = 0,
+                       cex = 1,
+                       cex.names = 1,
+                       main = paste("The frequency distribution plot of",
+                                    fvar.variable.label),
+                       xlab = paste(fvar.variable.label, "values"),
+                       ylab = "Frequency",
+                       col = "black"))
+        }
+    }
+    else {
         print(tab1(fvar.variable,
                    missing = TRUE,
                    bar.values = "frequency",
                    cex = 1,
                    cex.names = 1,
-                   main = "auto",
-                   xlab = "auto",
+                   main = paste("The frequency distribution plot of",
+                                fvar.variable.label),
+                   xlab = paste(fvar.variable.label, "values"),
+                   ylab = "Frequency",
                    col = "black"))
     }
-    else{
-        print(tab1(fvar.variable,
-                   missing = TRUE,
-                   bar.values = 0,
-                   cex = 1,
-                   cex.names = 1,
-                   main = "auto",
-                   xlab = "auto",
-                   col = "black"))
-    }
-    cat(paste("The type of variable is",
-              typeof(fvar.variable),
-              "/",
-              class(fvar.variable)
-              ),
+    cat("\n",
+        paste(
+            "The type of variable is",
+            typeof(fvar.variable),
+            "/",
+            class(fvar.variable)
+        ),
         "\n",
         paste("The missing of variable is",
               sum(is.na(fvar.variable))),
         sep = ""
     )
-
 }
 
 # *summary* ####################################################################
@@ -111,8 +131,8 @@ fvar <- function(fvar.variable){
 #'
 #' @examples
 fs <- function(fs.varibale,fs.group = NA){
-    fsd <- data.table(var = fs.varibale,
-                      cat = fs.group)
+    fsd <- data.table(var  = fs.varibale,
+                      cat  = fs.group)
     fs  <- fsd[, .(Nrow    = NROW(var),
                  　Sum     = round_function(sum(var, na.rm = TRUE), 8),
                 　 Mean    = round_function(mean(var, na.rm = TRUE), 8),
@@ -124,7 +144,7 @@ fs <- function(fs.varibale,fs.group = NA){
                    Max     = round_function(max(var, na.rm = TRUE), 8),
                    Missing = sum(is.na(var))
     ),
-    by                     = cat]
+    by = cat]
     fs <- as.data.table(fs)
     setnames(fs, 1, "Groups")
     return(fs)
@@ -158,154 +178,13 @@ update.J.cal <- function(J.calendar) {
         new_val <- paste0(1988 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
-
     for (i in 1:50) {
         old_val <- paste0("令", i, "\\.")
         new_val <- paste0(2018 + i, "\\.")
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
-
-    for (i in 1:15) {
-        old_val <- paste0("大正", i, "\\.")
-        new_val <- paste0(1911 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:64) {
-        old_val <- paste0("昭和", i, "\\.")
-        new_val <- paste0(1925 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:31) {
-        old_val <- paste0("平成", i, "\\.")
-        new_val <- paste0(1988 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:50) {
-        old_val <- paste0("令和", i, "\\.")
-        new_val <- paste0(2018 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
     return(J.calendar)
 }
-
-# *move column* ################################################################
-#' Title
-#'
-#' @param data
-#' @param col_name.old
-#' @param col_name.new
-#'
-#' @return
-#' @export
-#'
-#' @examples
-move.col <- function(data, col_name.old, col_name.new) {
-    # move col_name.old to the next column of col_name.new
-    if (col_name.new %in% c(1, "F", "f", "First", "first")) {
-        new_pos <- 0
-    } else {
-        new_pos <- which(colnames(data) == col_name.new)
-    }
-    current_pos <- which(colnames(data) == col_name.old)
-    `%!in%` = Negate(`%in%`)
-    if (!col_name.old %in% names(data) |
-        (!col_name.new %in% names(data) &
-         col_name.new %!in% c(1, "F", "f", "First", "first"))) {
-        stop("Column name '", col_name.old, "' not found in data set")
-    }
-    if (col_name.new == col_name.old) {
-        stop("Column '", col_name.old,
-             "' is same with '", col_name.new,
-             "'")
-    }
-    if (new_pos == current_pos - 1) {
-        stop("Column '", col_name.old,
-             "' is already in the designated position")
-    }
-    # Move the column to the new position
-    if (new_pos == 0 & current_pos < ncol(data)) {
-        new_order <-
-            c(current_pos,1:(current_pos - 1),(current_pos + 1):ncol(data))
-    } else if (new_pos == 0 & current_pos == ncol(data)) {
-        new_order <- c(current_pos, 1:(current_pos - 1))
-    } else if (new_pos == 1 & current_pos < ncol(data) & current_pos != 1) {
-        new_order <-
-            c(1, current_pos,2:(current_pos - 1),(current_pos + 1):ncol(data))
-    } else if (new_pos == 1 & current_pos == ncol(data) & current_pos != 1) {
-        new_order <- c(1, current_pos, 2:(current_pos - 1))
-    } else if (current_pos == 1 & new_pos < ncol(data) & new_pos > 1) {
-        new_order <- c(2:new_pos, current_pos, (new_pos + 1):ncol(data))
-    } else if (current_pos == 1 & new_pos == ncol(data) & new_pos > 1) {
-        new_order <- c(2:new_pos, current_pos)
-    } else if (new_pos > current_pos &
-               new_pos < ncol(data) & new_pos != 1 & current_pos != 1) {
-        new_order <-
-            c(1:(current_pos - 1),(current_pos + 1):new_pos,current_pos,
-              (new_pos + 1):ncol(data))
-    } else if (new_pos > current_pos &
-               new_pos == ncol(data) & new_pos != 1 & current_pos != 1) {
-        new_order <-
-            c(1:(current_pos - 1), (current_pos + 1):new_pos, current_pos)
-    } else if (new_pos < current_pos &
-               current_pos < ncol(data) & new_pos > 1 & current_pos != 1) {
-        new_order <-
-            c(1:new_pos,
-              current_pos,
-              (new_pos + 1):(current_pos - 1),
-              (current_pos + 1):ncol(data)
-            )
-    } else if (new_pos < current_pos &
-               current_pos == ncol(data) & new_pos > 1 & current_pos != 1) {
-        new_order <-
-            c(1:new_pos, current_pos, (new_pos + 1):(current_pos - 1))
-    }
-
-    if (ncol(data[, ..new_order]) != ncol(data)) {
-        stop("check function")
-    } else {
-        cat(
-            "Column '",
-            col_name.old,
-            "' has been moved to the position next to '",
-            col_name.new,
-            "'"
-        )
-        return(data[, ..new_order])
-    }
-}
-# for test
-# dt <- data.table(matrix(rnorm(20), ncol=5))
-# move.column(dt, "V1", "V2")
-# move.column(dt, "V1", "V3")
-# move.column(dt, "V1", "V4")
-# move.column(dt, "V1", "V5")
-#
-# move.column(dt, "V1", "V5")
-# move.column(dt, "V2", "V5")
-# move.column(dt, "V3", "V5")
-# move.column(dt, "V4", "V5")
-#
-# move.column(dt, "V2", "V1")
-# move.column(dt, "V3", "V1")
-# move.column(dt, "V4", "V1")
-# move.column(dt, "V5", "V1")
-#
-# move.column(dt, "V5", "V1")
-# move.column(dt, "V5", "V2")
-# move.column(dt, "V5", "V3")
-# move.column(dt, "V5", "V4")
-#
-# move.column(dt, "V2", "V3")
-# move.column(dt, "V2", "V4")
-#
-# move.column(dt, "V4", "V4")
-#
-# move.column(dt, "V3", "V2")
-# move.column(dt, "V4", "V2")
-#
-# move.column(dt, "V3", 1)
-#
-# move.column(dt, "V1", 1)
 
 # *Cochran Armitage Trend Test* ################################################
 # dose <- matrix(c(10,9,10,7, 0,1,0,3),
