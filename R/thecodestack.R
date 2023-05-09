@@ -66,47 +66,67 @@ dv <- function(dv.variable,dv.n){
 #' @export
 #'
 #' @examples
-fvar <- function(fvar.variable, fvar.bar = TRUE){
-    fvar.variable.label <- sub(".*\\$", "", deparse(substitute(fvar.variable)))
+fvar <- function(fvar.variable, fvar.bar = TRUE) {
+    fvar.variable.label <-
+        sub(".*\\$", "", deparse(substitute(fvar.variable)))
     if (fvar.bar) {
         if (nlevels(as.factor(fvar.variable)) <= 10) {
-            print(tab1(fvar.variable,
-                       missing = TRUE,
-                       bar.values = "frequency",
-                       cex = 1,
-                       cex.names = 1,
-                       main = paste("The frequency distribution plot of",
-                                    fvar.variable.label),
-                       xlab = paste(fvar.variable.label, "values"),
-                       ylab = "Frequency",
-                       col = "black"))
+            print(
+                epiDisplay::tab1(
+                    fvar.variable,
+                    missing = TRUE,
+                    bar.values = "frequency",
+                    cex = 1,
+                    cex.names = 1,
+                    main = paste(
+                        "The frequency distribution plot of",
+                        fvar.variable.label
+                    ),
+                    xlab = paste(fvar.variable.label, "values"),
+                    ylab = "Frequency",
+                    col = "black"
+                )
+            )
         }
         else{
-            print(tab1(fvar.variable,
-                       missing = TRUE,
-                       bar.values = 0,
-                       cex = 1,
-                       cex.names = 1,
-                       main = paste("The frequency distribution plot of",
-                                    fvar.variable.label),
-                       xlab = paste(fvar.variable.label, "values"),
-                       ylab = "Frequency",
-                       col = "black"))
+            print(
+                epiDisplay::tab1(
+                    fvar.variable,
+                    missing = TRUE,
+                    bar.values = 0,
+                    cex = 1,
+                    cex.names = 1,
+                    main = paste(
+                        "The frequency distribution plot of",
+                        fvar.variable.label
+                    ),
+                    xlab = paste(fvar.variable.label, "values"),
+                    ylab = "Frequency",
+                    col = "black"
+                )
+            )
         }
     }
     else {
-        print(tab1(fvar.variable,
-                   missing = TRUE,
-                   bar.values = "frequency",
-                   cex = 1,
-                   cex.names = 1,
-                   main = paste("The frequency distribution plot of",
-                                fvar.variable.label),
-                   xlab = paste(fvar.variable.label, "values"),
-                   ylab = "Frequency",
-                   col = "black"))
+        print(
+            epiDisplay::tab1(
+                fvar.variable,
+                missing = TRUE,
+                bar.values = "frequency",
+                cex = 1,
+                cex.names = 1,
+                main = paste(
+                    "The frequency distribution plot of",
+                    fvar.variable.label
+                ),
+                xlab = paste(fvar.variable.label, "values"),
+                ylab = "Frequency",
+                col = "black"
+            )
+        )
     }
-    cat("\n",
+    cat(
+        "\n",
         paste(
             "The type of variable is",
             typeof(fvar.variable),
@@ -138,9 +158,11 @@ fs <- function(fs.varibale,fs.group = NA){
                 　 Mean    = round_function(mean(var, na.rm = TRUE), 8),
                    stdDev  = round_function(sd(var, na.rm = TRUE),8),
                    Min     = round_function(min(var, na.rm = TRUE), 8),
-                   Q25     = round_function(quantile(var, probs = 0.25, na.rm = TRUE), 8),
+                   Q25     = round_function(quantile(var, probs = 0.25,
+                                                     na.rm = TRUE), 8),
                    Median  = round_function(median(var, na.rm = TRUE), 8),
-                   Q75     = round_function(quantile(var, probs = 0.75, na.rm = TRUE), 8),
+                   Q75     = round_function(quantile(var, probs = 0.75,
+                                                     na.rm = TRUE), 8),
                    Max     = round_function(max(var, na.rm = TRUE), 8),
                    Missing = sum(is.na(var))
     ),
@@ -160,9 +182,7 @@ fs <- function(fs.varibale,fs.group = NA){
 #'
 #' @examples
 update.J.cal <- function(J.calendar) {
-    cat(
-        "This function supports a conversion range between 大正1年(1912) and 令和50年(2068)."
-    )
+    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
     for (i in 1:15) {
         old_val <- paste0("大", i, "\\.")
         new_val <- paste0(1911 + i, "\\.")
@@ -237,26 +257,45 @@ Cochran_Armitage_Trend_Test <- function(Realtive_risk_number.exposure,
 #' @export
 #'
 #' @examples
-Table_ones <- function(Table_one.analysis_data,
+Table_one <- function(Table_one.analysis_data,
                       Table_one.all_varibales,
                       Table_one.categorical_variables,
-                      Table_one.group,
-                      Table_one.nonnormal_variables,
-                      Table_one.contDigits
-){
-    Table_one.print <- print(
-        CreateTableOne(data          = Table_one.analysis_data,
-                       vars          = Table_one.all_varibales,
-                       strata        = Table_one.group,
-                       factorVars    = Table_one.categorical_variables),
-        contDigits    = Table_one.contDigits,
-        format        = c("p"), #format = c("fp", "f", "p", "pf")
-        nonnormal     = Table_one.nonnormal_variables,
-        showAllLevels = FALSE,
-        formatOptions = list(big.mark = ","
-        ),
-        noSpaces      = TRUE
-    )
+                      Table_one.group = NA,
+                      Table_one.nonnormal_variables = NULL,
+                      Table_one.contDigits = 2
+                      ) {
+    if (is.na(Table_one.group)) {
+        Table_one.print <- print(
+            tableone::CreateTableOne(
+                data          = Table_one.analysis_data,
+                vars          = Table_one.all_varibales,
+                factorVars    = Table_one.categorical_variables
+            ),
+            contDigits    = Table_one.contDigits,
+            format        = c("p"),
+            #format = c("fp", "f", "p", "pf")
+            nonnormal     = Table_one.nonnormal_variables,
+            showAllLevels = FALSE,
+            formatOptions = list(big.mark = ","),
+            noSpaces      = TRUE
+        )}
+    else {
+        Table_one.print <- print(
+            tableone::CreateTableOne(
+                data          = Table_one.analysis_data,
+                vars          = Table_one.all_varibales,
+                strata        = Table_one.group,
+                factorVars    = Table_one.categorical_variables
+            ),
+            contDigits    = Table_one.contDigits,
+            format        = c("p"),
+            #format = c("fp", "f", "p", "pf")
+            nonnormal     = Table_one.nonnormal_variables,
+            showAllLevels = FALSE,
+            formatOptions = list(big.mark = ","),
+            noSpaces      = TRUE
+        )
+    }
     write.table(Table_one.print,
                 paste0("clipboard-",
                        formatC(100*100,
@@ -270,48 +309,6 @@ Table_ones <- function(Table_one.analysis_data,
     )
 }
 
-#' Title
-#'
-#' @param Table_one.analysis_data
-#' @param Table_one.all_varibales
-#' @param Table_one.categorical_variables
-#' @param Table_one.nonnormal_variables
-#' @param Table_one.contDigits
-#'
-#' @return
-#' @export
-#'
-#' @examples
-Table_one <- function(Table_one.analysis_data,
-                      Table_one.all_varibales,
-                      Table_one.categorical_variables,
-                      Table_one.nonnormal_variables,
-                      Table_one.contDigits
-){
-    Table_one.print <- print(
-        CreateTableOne(data          = Table_one.analysis_data,
-                       vars          = Table_one.all_varibales,
-                       factorVars    = Table_one.categorical_variables),
-        contDigits    = Table_one.contDigits,
-        format        = c("p"), #format = c("fp", "f", "p", "pf")
-        nonnormal     = Table_one.nonnormal_variables,
-        showAllLevels = FALSE,
-        formatOptions = list(big.mark = ","
-        ),
-        noSpaces      = TRUE
-    )
-    write.table(Table_one.print,
-                paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
-                ),
-                sep       = "\t",
-                row.names = TRUE,
-                col.names = FALSE,
-                dec       = "."
-    )
-}
 
 # *number of total and event* ##################################################
 
