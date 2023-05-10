@@ -2,60 +2,6 @@
 ## 2023/04/05 version ##########################################################
 ## shift + ctrl + alt + R
 
-# *rounding* ###################################################################
-#' Title
-#'
-#' @param data
-#' @param n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-round_function <- function(data, n){
-    data_sign  <- sign(data)
-    data       <- abs(data) * 10 ^ n
-    data       <- data + 0.5
-    data       <- trunc(data)
-    return(data_sign * data / 10 ^ n)
-}
-
-# *geometric mean* #############################################################
-#' geometric mean
-#'
-#' @param geo_mean.values  the $variable
-#'
-#' @return geometric mean
-#' @export
-#'
-#' @examples
-# expmean(log(x))) # geometric mean
-# exp(sum(log(x)/length(x)) # geometric mean
-# exp(mean(log(x)))
-geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
-
-# *dummy variable* #############################################################
-#' Title
-#'
-#' @param dv.variable
-#' @param dv.n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-dv <- function(dv.variable,dv.n){
-    dv.dummy <- cut(dv.variable,
-                    quantile(dv.variable,
-                             probs = seq(0, 1, 1/dv.n),
-                             na.rm = TRUE
-                    ),
-                    labels = c(0:(dv.n - 1)),
-                    include.lowest = TRUE
-    )
-    return(dv.dummy)
-}
-
 # *type and frequency* #########################################################
 #' Title
 #'
@@ -134,8 +80,21 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
             class(fvar.variable)
         ),
         "\n",
-        paste("The missing of variable is",
-              sum(is.na(fvar.variable))),
+        paste("The number of zero variables is",
+              sum(fvar.variable == 0)
+        ),
+        "\n",
+        paste("The number of missing variables is",
+              sum(is.na(fvar.variable))
+        ),
+        "\n",
+        paste("The number of null variables is",
+              sum(is.null(fvar.variable))
+        ),
+        "\n",
+        paste("The number of variables containing space is",
+              sum(grepl(" ", fvar.variable))
+        ),
         sep = ""
     )
 }
@@ -172,39 +131,37 @@ fs <- function(fs.varibale,fs.group = NA){
     return(fs)
 }
 
-# *update Japanese .calender* ##################################################
+# *rounding* ###################################################################
 #' Title
 #'
-#' @param J.calendar
+#' @param data
+#' @param n
 #'
 #' @return
 #' @export
 #'
 #' @examples
-update.J.cal <- function(J.calendar) {
-    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
-    for (i in 1:15) {
-        old_val <- paste0("大", i, "\\.")
-        new_val <- paste0(1911 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:64) {
-        old_val <- paste0("昭", i, "\\.")
-        new_val <- paste0(1925 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:31) {
-        old_val <- paste0("平", i, "\\.")
-        new_val <- paste0(1988 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:50) {
-        old_val <- paste0("令", i, "\\.")
-        new_val <- paste0(2018 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    return(J.calendar)
+round_function <- function(data, n){
+    data_sign  <- sign(data)
+    data       <- abs(data) * 10 ^ n
+    data       <- data + 0.5
+    data       <- trunc(data)
+    return(data_sign * data / 10 ^ n)
 }
+
+# *geometric mean* #############################################################
+#' geometric mean
+#'
+#' @param geo_mean.values  the $variable
+#'
+#' @return geometric mean
+#' @export
+#'
+#' @examples
+# expmean(log(x))) # geometric mean
+# exp(sum(log(x)/length(x)) # geometric mean
+# exp(mean(log(x)))
+geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
 
 # *Cochran Armitage Trend Test* ################################################
 # dose <- matrix(c(10,9,10,7, 0,1,0,3),
@@ -241,6 +198,62 @@ Cochran_Armitage_Trend_Test <- function(Realtive_risk_number.exposure,
     )
     print(Realtive_risk_number.horizontal_occurtable)
     DescTools::CochranArmitageTest(Realtive_risk_number.horizontal_occurtable)
+}
+
+# *dummy variable* #############################################################
+#' Title
+#'
+#' @param dv.variable
+#' @param dv.n
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dv <- function(dv.variable,dv.n){
+    dv.dummy <- cut(dv.variable,
+                    quantile(dv.variable,
+                             probs = seq(0, 1, 1/dv.n),
+                             na.rm = TRUE
+                    ),
+                    labels = c(0:(dv.n - 1)),
+                    include.lowest = TRUE
+    )
+    return(dv.dummy)
+}
+
+# *update Japanese .calender* ##################################################
+#' Title
+#'
+#' @param J.calendar
+#'
+#' @return
+#' @export
+#'
+#' @examples
+update.J.cal <- function(J.calendar) {
+    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
+    for (i in 1:15) {
+        old_val <- paste0("大", i, "\\.")
+        new_val <- paste0(1911 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:64) {
+        old_val <- paste0("昭", i, "\\.")
+        new_val <- paste0(1925 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:31) {
+        old_val <- paste0("平", i, "\\.")
+        new_val <- paste0(1988 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:50) {
+        old_val <- paste0("令", i, "\\.")
+        new_val <- paste0(2018 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    return(J.calendar)
 }
 
 # *Table 1* ####################################################################
@@ -309,85 +322,112 @@ Table_one <- function(Table_one.analysis_data,
     )
 }
 
-
 # *number of total and event* ##################################################
-
 #' Title
 #'
-#' @param Realtive_risk_number.event
-#' @param Realtive_risk_number.exposure
+#' @param fpn.exposure
+#' @param fpn.event
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fn <- function(Realtive_risk_number.event,
-               Realtive_risk_number.exposure){
-    Realtive_risk_number.crosstable <- gmodels::CrossTable(
-        Realtive_risk_number.event,
-        Realtive_risk_number.exposure,
-        prop.t = FALSE,
-        prop.r = FALSE,
-        prop.c = FALSE
-    )
-    Realtive_risk_number.occurtable <- data.frame(
-        No.of_non_cases = Realtive_risk_number.crosstable$t[1,],
-        No.of_cases     = Realtive_risk_number.crosstable$t[2,]
-    )
-    ##!! dont use data.table because data.table has no row title
-    Realtive_risk_number.occurtable$No.of_participants <- rowSums(
-        Realtive_risk_number.occurtable
-    )
-    Realtive_risk_number.occurtable <- Realtive_risk_number.occurtable[,-1]
-    Realtive_risk_number.horizontal_occurtable <- as.data.frame(
-        t(Realtive_risk_number.occurtable)
-    )
-    Realtive_risk_number.print_horizontal_occurtable <- as.data.frame(
-        t(Realtive_risk_number.occurtable)
-    )
-    Realtive_risk_number.print_horizontal_occurtable$total = rowSums(
-        Realtive_risk_number.print_horizontal_occurtable
-    )
-    print(Realtive_risk_number.print_horizontal_occurtable[
-        c("No.of_participants","No.of_cases"),
-    ]
-    )
-    write.table(
-        Realtive_risk_number.horizontal_occurtable[c("No.of_participants",
-                                                     "No.of_cases"),],
-                paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
-                ),
-                sep       = "\t",
-                row.names = FALSE,
-                col.names = FALSE,
-                dec       = "."
-    )
+fpn <- function(fpn.exposure,
+                fpn.event,
+                fpn.test = FALSE){
+    if (length(unique(fpn.event)) == 2) {
+        if (fpn.test) {
+            fpn.crosstable <- gmodels::CrossTable(
+                fpn.event,
+                fpn.exposure,
+                chisq  = TRUE,
+                fisher = TRUE,
+                prop.t = FALSE,
+                prop.r = FALSE,
+                prop.c = FALSE
+            )
+        } else {
+            fpn.crosstable <- gmodels::CrossTable(
+                fpn.event,
+                fpn.exposure,
+                chisq  = FALSE,
+                fisher = FALSE,
+                prop.t = FALSE,
+                prop.r = FALSE,
+                prop.c = FALSE
+            )
+        }
+        fpn.occurtable <- data.frame(No.of_non_cases = fpn.crosstable$t[1, ],
+                                     No.of_cases     = fpn.crosstable$t[2, ])
+        ##!! not use data.table because data.table has no row title !!##
+        fpn.occurtable$No.of_participants <- rowSums(fpn.occurtable)
+        fpn.occurtable <- fpn.occurtable[, -1]
+        fpn.horizontal_occurtable <- as.data.frame(t(fpn.occurtable))
+        fpn.print_horizontal_occurtable <- as.data.frame(t(fpn.occurtable))
+        fpn.print_horizontal_occurtable$total =
+            rowSums(fpn.print_horizontal_occurtable)
+        print(fpn.print_horizontal_occurtable[c("No.of_participants",
+                                                "No.of_cases"), ])
+        write.table(
+            fpn.horizontal_occurtable[c("No.of_participants",
+                                        "No.of_cases"), ],
+            paste0("clipboard-",
+                   formatC(
+                       100 * 100,
+                       format = "f",
+                       digits = 0
+                   )),
+            sep       = "\t",
+            row.names = FALSE,
+            col.names = FALSE,
+            dec       = "."
+        )
+    } else {
+    if (fpn.test) {
+        fpn.crosstable <- gmodels::CrossTable(
+            fpn.event,
+            fpn.exposure,
+            chisq  = TRUE,
+            fisher = TRUE,
+            prop.t = FALSE,
+            prop.r = FALSE,
+            prop.c = FALSE
+        )
+    } else {
+        fpn.crosstable <- gmodels::CrossTable(
+            fpn.event,
+            fpn.exposure,
+            chisq  = FALSE,
+            fisher = FALSE,
+            prop.t = FALSE,
+            prop.r = FALSE,
+            prop.c = FALSE
+        )
+    }
+}
 }
 
-# *number of peason-years* #####################################################
+# *number of person-years* #####################################################
 #' Title
 #'
-#' @param py.exposure
-#' @param py.event
+#' @param fpy.exposure
+#' @param fpy.event
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fpy <- function(py.exposure, py.event) {
-    py <- as.data.table(fs(py.exposure, py.event))
-    setnames(py,"Sum","Peason-years")
-    setorder(py,"Groups")
-    py.table <- as.data.frame(t(py[,c(1,3)]))
-    colnames(py.table) <- NULL
-    py.table$total <- as.numeric(as.data.table(fs(py.exposure))[,3])
-    py.table[1,]$total <- ""
-    print(py.table)
+fpy <- function(fpy.exposure, fpy.event) {
+    fpy <- as.data.table(fs(fpy.exposure, fpy.event))
+    setnames(fpy,"Sum","Peason-years")
+    setorder(fpy,"Groups")
+    fpy.table <- as.data.frame(t(fpy[,c(1,3)]))
+    colnames(fpy.table) <- NULL
+    fpy.table$total <- as.numeric(as.data.table(fs(fpy.exposure))[,3])
+    fpy.table[1,]$total <- ""
+    print(fpy.table)
     write.table(
-        round_function(t(py[, 3]), 0),
+        round_function(t(fpy[, 3]), 0),
         paste0("clipboard-",
                formatC(
                    100 * 100,
@@ -415,15 +455,11 @@ fpy <- function(py.exposure, py.event) {
 ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
     logistic_model <- glm(ORs.model,
                           data   = ORs.analysis_data,
-                          family = binomial(link = 'logit')
-    )
-    ORs.observation <- paste("Number","of","observation", "is",
-                             length(residuals(logistic_model))
-    )
+                          family = binomial(link = 'logit'))
+    ORs.observation <- paste("Number", "of", "observation", "is",
+                             length(residuals(logistic_model)))
     ORs.model_results <- exp(cbind(OR = coef(logistic_model),
-                                   confint(logistic_model)
-    )
-    )
+                                     confint(logistic_model)))
     ORs.round_model_results <- round_function(ORs.model_results,2)
     ORs.table <- data.table(Exposures = row.names(ORs.round_model_results),
                             ORs       = paste(ORs.round_model_results[,1],
@@ -490,20 +526,17 @@ optimism_adjusted_AUC <- function(data, fit, B){
     for (i in 1:B) {
         boot.sample <- sample.rows(data,
                                    nrow(data),
-                                   replace = TRUE
-        ) # require 'kimisc'
+                                   replace = TRUE) # require 'kimisc'
         fit.boot <- glm(formula(fit.model),
                         data   = boot.sample,
-                        family = "binomial"
-        )
+                        family = "binomial")
         boot.sample$pred.prob <- fitted(fit.boot)
         auc.boot[i] <- roc(as.numeric(unlist(boot.sample[,1])),
                            boot.sample$pred.prob,
                            data = boot.sample)$auc
         data$pred.prob.back <- predict.glm(fit.boot,
                                            newdata = data,
-                                           type    = "response"
-        )
+                                           type    = "response")
         auc.orig[i] <- roc(as.numeric(unlist(data[,1])),
                            data$pred.prob.back,
                            data = data)$auc
@@ -514,13 +547,11 @@ optimism_adjusted_AUC <- function(data, fit, B){
     boxplot(auc.boot, auc.orig, names = c("auc.boot", "auc.orig"))
     title(main    = paste("Optimism-adjusted AUC",
                           "\nn of bootstrap resamples:",
-                          B
-    ),
+                          B),
     sub     = paste("auc.app (blue line)=",
                     round(auc.app, digits = 4),
                     "\nadj.auc (red line)=",
-                    round(auc.adj, digits = 4)
-    ),
+                    round(auc.adj, digits = 4)),
     cex.sub = 0.8)
     abline(h   = auc.app,
            col = "blue",
@@ -531,8 +562,7 @@ optimism_adjusted_AUC <- function(data, fit, B){
     The95CI  <- data.table(
         optimism_adjusted_AUC = auc.adj,
         under_95_CI           = quantile(auc.adj.individual, probs = 0.025),
-        upper_95_CI           = quantile(auc.adj.individual, probs = 0.925)
-    )
+        upper_95_CI           = quantile(auc.adj.individual, probs = 0.925))
     rownames(The95CI) <- ""
     return(The95CI)
 }
@@ -557,7 +587,7 @@ PH_assumption <- function(phdata,phmodel){
                                              data = phdata))
     print(zph)
     survminer::ggcoxzph(zph)
-    rm(phdata,envir = .GlobalEnv)
+    rm(phdata, envir = .GlobalEnv)
 }
 
 #' Title
@@ -572,15 +602,11 @@ PH_assumption <- function(phdata,phmodel){
 #' @examples
 HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
     cox_model <- survival::coxph(HRs.model,
-                                 data = HRs.analysis_data,
-    )
-    HRs.observation <- paste("Number","of","observation", "is",
-                             length(residuals(cox_model))
-    )
+                                 data = HRs.analysis_data,)
+    HRs.observation <- paste("Number", "of", "observation", "is",
+                             length(residuals(cox_model)))
     HRs.model_results <- exp(cbind(HR = coef(cox_model),
-                                   confint(cox_model)
-    )
-    )
+                                     confint(cox_model)))
     HRs.round_model_results <- round_function(HRs.model_results,2)
     HRs.table <- data.frame(Exposures = row.names(HRs.round_model_results),
                             HRs       = paste(HRs.round_model_results[,1],
@@ -594,15 +620,14 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                                 as.numeric(
                                     summary(cox_model)$coefficients[,c(5)]
                                 ), 4
+                                )
                             )
-    )
     HRs.horizontal_table <- as.data.frame(t(HRs.table))
     summary(cox_model)
     print(HRs.table)
     HRs.horizontal_table_print <- HRs.horizontal_table[
         row.names(HRs.horizontal_table) == "HRs",
-        (ncol(HRs.horizontal_table) - HRs.n + 1):ncol(HRs.horizontal_table)
-    ]
+        (ncol(HRs.horizontal_table) - HRs.n + 1):ncol(HRs.horizontal_table)]
     print(summary(cox_model))
     print(HRs.table)
     print(HRs.horizontal_table_print)
@@ -611,8 +636,7 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                 paste0("clipboard-",
                        formatC(100*100,
                                format = "f",
-                               digits = 0)
-                ),
+                               digits = 0)),
                 sep       = "\t",
                 row.names = FALSE,
                 col.names = FALSE,
@@ -631,8 +655,7 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
 #' @examples
 KMplot <- function(KMplot.analysis_data, KMplot.model){
     KMplot.KM <- survminer::surv_fit(KMplot.model,
-                                     data = KMplot.analysis_data
-    )
+                                     data = KMplot.analysis_data)
     # summary(KMplot, times=seq(0, 1000, 250))
     survminer::ggsurvplot(KMplot.KM,
                           data               = KMplot.analysis_data,
@@ -646,8 +669,7 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
                           # legend.labs        = c("Group1", "Group2"),
                           legend.title       = "Group",
                           # palette            = c("gray25", "gray50"),
-                          risk.table.height  = .25
-    )
+                          risk.table.height  = .25)
 }
 
 #' Title
@@ -662,8 +684,8 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
 #'
 #' @examples
 Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
-    FG.cox_model <- cmprsk::crr(FG.time,
-                                FG.status,
+    FG.cox_model <- cmprsk::crr(time = FG.time,
+                                status = FG.status,
                                 FG.model,
                                 failcode = 1,
                                 cencode = 0
@@ -852,5 +874,44 @@ mytheme <- function() {
 # devtools::load_all() # loading the latest package for testing
 # ctrl+alt+shift+R
 devtools::build()
+
+
+
+## test ########################################################################
+set.seed(123)
+dt <- data.frame(a = rnorm(100), b = rnorm(100), c = sample(c("A", "B", "C"), 100, replace = TRUE),
+                 d = sample(c(0.2, 1), 100, replace = TRUE), stringsAsFactors = FALSE)
+
+fplot.x <- dt$c
+fplot.y <- dt$d
+
+fplot <- function(dt, fplot.x, fplot.y) {
+    if(!is.character(fplot.x) & !is.numeric(fplot.x)) {
+        stop("Input variables must be numeric or character.")
+    }
+    if(!is.numeric(fplot.y)) {
+        stop("Input variables must be numeric.")
+    }
+    if(length(unique(fplot.y)) == 2 && !all((0 %in% fplot.y) && (1 %in% fplot.y))) {
+        stop("Input binny variables must be 0 or 1.")
+    }
+    if (length(unique(fplot.y)) == 2) {
+        ggplot(dt, aes(x = fplot.x , y = fplot.y)) +
+            geom_bar(stat = "identity",fill = "black",aes(y = ..prop.., group = 1)) +
+            labs(y = "Proportion")
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
