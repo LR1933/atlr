@@ -2,7 +2,40 @@
 ## 2023/04/05 version ##########################################################
 ## shift + ctrl + alt + R
 
-# *type and frequency* #########################################################
+##【Data Cleansing】############################################################
+## rounding ####################################################################
+#' Title
+#'
+#' @param data
+#' @param n
+#'
+#' @return
+#' @export
+#'
+#' @examples
+round_function <- function(data, n){
+    data_sign  <- sign(data)
+    data       <- abs(data) * 10 ^ n
+    data       <- data + 0.5
+    data       <- trunc(data)
+    return(data_sign * data / 10 ^ n)
+}
+
+## geometric mean ##############################################################
+#' geometric mean
+#'
+#' @param geo_mean.values  the $variable
+#'
+#' @return geometric mean
+#' @export
+#'
+#' @examples
+# expmean(log(x))) # geometric mean
+# exp(sum(log(x)/length(x)) # geometric mean
+# exp(mean(log(x)))
+geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
+
+## frequency and type ##########################################################
 #' Title
 #'
 #' @param fvar.variable
@@ -99,7 +132,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
     )
 }
 
-# *summary* ####################################################################
+## summary #####################################################################
 #' Title
 #'
 #' @param fs.varibale
@@ -131,39 +164,64 @@ fs <- function(fs.varibale,fs.group = NA){
     return(fs)
 }
 
-# *rounding* ###################################################################
+## dummy variable ##############################################################
 #' Title
 #'
-#' @param data
-#' @param n
+#' @param dv.variable
+#' @param dv.n
 #'
 #' @return
 #' @export
 #'
 #' @examples
-round_function <- function(data, n){
-    data_sign  <- sign(data)
-    data       <- abs(data) * 10 ^ n
-    data       <- data + 0.5
-    data       <- trunc(data)
-    return(data_sign * data / 10 ^ n)
+dv <- function(dv.variable,dv.n){
+    dv.dummy <- cut(dv.variable,
+                    quantile(dv.variable,
+                             probs = seq(0, 1, 1/dv.n),
+                             na.rm = TRUE
+                    ),
+                    labels = c(0:(dv.n - 1)),
+                    include.lowest = TRUE
+    )
+    return(dv.dummy)
 }
 
-# *geometric mean* #############################################################
-#' geometric mean
+## update Japanese .calender ###################################################
+#' Title
 #'
-#' @param geo_mean.values  the $variable
+#' @param J.calendar
 #'
-#' @return geometric mean
+#' @return
 #' @export
 #'
 #' @examples
-# expmean(log(x))) # geometric mean
-# exp(sum(log(x)/length(x)) # geometric mean
-# exp(mean(log(x)))
-geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
+update.J.cal <- function(J.calendar) {
+    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
+    for (i in 1:15) {
+        old_val <- paste0("大", i, "\\.")
+        new_val <- paste0(1911 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:64) {
+        old_val <- paste0("昭", i, "\\.")
+        new_val <- paste0(1925 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:31) {
+        old_val <- paste0("平", i, "\\.")
+        new_val <- paste0(1988 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    for (i in 1:50) {
+        old_val <- paste0("令", i, "\\.")
+        new_val <- paste0(2018 + i, "\\.")
+        J.calendar <- gsub(old_val, new_val, J.calendar)
+    }
+    return(J.calendar)
+}
 
-# *Cochran Armitage Trend Test* ################################################
+##【Data analysis】#############################################################
+## Cochran Armitage Trend Test #################################################
 # dose <- matrix(c(10,9,10,7, 0,1,0,3),
 #                byrow=TRUE,
 #                nrow=2,
@@ -200,63 +258,10 @@ Cochran_Armitage_Trend_Test <- function(Realtive_risk_number.exposure,
     DescTools::CochranArmitageTest(Realtive_risk_number.horizontal_occurtable)
 }
 
-# *dummy variable* #############################################################
-#' Title
-#'
-#' @param dv.variable
-#' @param dv.n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-dv <- function(dv.variable,dv.n){
-    dv.dummy <- cut(dv.variable,
-                    quantile(dv.variable,
-                             probs = seq(0, 1, 1/dv.n),
-                             na.rm = TRUE
-                    ),
-                    labels = c(0:(dv.n - 1)),
-                    include.lowest = TRUE
-    )
-    return(dv.dummy)
-}
 
-# *update Japanese .calender* ##################################################
-#' Title
-#'
-#' @param J.calendar
-#'
-#' @return
-#' @export
-#'
-#' @examples
-update.J.cal <- function(J.calendar) {
-    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
-    for (i in 1:15) {
-        old_val <- paste0("大", i, "\\.")
-        new_val <- paste0(1911 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:64) {
-        old_val <- paste0("昭", i, "\\.")
-        new_val <- paste0(1925 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:31) {
-        old_val <- paste0("平", i, "\\.")
-        new_val <- paste0(1988 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:50) {
-        old_val <- paste0("令", i, "\\.")
-        new_val <- paste0(2018 + i, "\\.")
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    return(J.calendar)
-}
 
-# *Table 1* ####################################################################
+
+## Table 1 #####################################################################
 #' Title
 #'
 #' @param Table_one.analysis_data
@@ -322,7 +327,7 @@ Table_one <- function(Table_one.analysis_data,
     )
 }
 
-# *number of total and event* ##################################################
+## number of total and event ###################################################
 #' Title
 #'
 #' @param fpn.exposure
@@ -340,7 +345,6 @@ fpn <- function(fpn.exposure,
             fpn.crosstable <- gmodels::CrossTable(
                 fpn.event,
                 fpn.exposure,
-                chisq  = TRUE,
                 fisher = TRUE,
                 prop.t = FALSE,
                 prop.r = FALSE,
@@ -350,7 +354,6 @@ fpn <- function(fpn.exposure,
             fpn.crosstable <- gmodels::CrossTable(
                 fpn.event,
                 fpn.exposure,
-                chisq  = FALSE,
                 fisher = FALSE,
                 prop.t = FALSE,
                 prop.r = FALSE,
@@ -387,7 +390,6 @@ fpn <- function(fpn.exposure,
         fpn.crosstable <- gmodels::CrossTable(
             fpn.event,
             fpn.exposure,
-            chisq  = TRUE,
             fisher = TRUE,
             prop.t = FALSE,
             prop.r = FALSE,
@@ -397,7 +399,6 @@ fpn <- function(fpn.exposure,
         fpn.crosstable <- gmodels::CrossTable(
             fpn.event,
             fpn.exposure,
-            chisq  = FALSE,
             fisher = FALSE,
             prop.t = FALSE,
             prop.r = FALSE,
@@ -407,7 +408,7 @@ fpn <- function(fpn.exposure,
 }
 }
 
-# *number of person-years* #####################################################
+## number of person-years ######################################################
 #' Title
 #'
 #' @param fpy.exposure
@@ -441,7 +442,7 @@ fpy <- function(fpy.exposure, fpy.event) {
     )
 }
 
-# *logistic model* #############################################################
+## logistic model ##############################################################
 #' Title
 #'
 #' @param ORs.analysis_data
@@ -497,7 +498,7 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
     )
 }
 
-# *optimism adjusted AUC* ######################################################
+## optimism adjusted AUC #######################################################
 # http://cainarchaeology.weebly.com/r-function-for-optimism-adjusted-auc.html
 # https://academic.oup.com/aje/article/180/3/318/2739260
 # !!note: the Dependent Variable must be stored in the first column to the left
@@ -567,7 +568,7 @@ optimism_adjusted_AUC <- function(data, fit, B){
     return(The95CI)
 }
 
-# *cox model* ##################################################################
+## cox model ###################################################################
 # The proportional hazards assumption is checked using statistical tests and
 # -graphical diagnostics based on the scaled Schoenfeld residuals.
 # In principle, the Schoenfeld residuals are independent of time. Plot with a
@@ -672,6 +673,7 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
                           risk.table.height  = .25)
 }
 
+
 #' Title
 #'
 #' @param FG.time
@@ -732,7 +734,7 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
     )
 }
 
-# *modified_poisson_model* #####################################################
+## modified_poisson_model ######################################################
 #' Title
 #'
 #' @param PRs.analysis_data
@@ -793,7 +795,7 @@ PRs <- function(PRs.analysis_data,PRs.model,PRs.n){
     print(noquote(PRs.observation))
 }
 
-# *generalized estimating equation model* ######################################
+## generalized estimating equation model ######################################
 #' Title
 #'
 #' @param GEE.analysis_data
@@ -859,7 +861,7 @@ GEE <- function(GEE.analysis_data,
     print(noquote(GEE.observation))
 }
 
-#### Bulid a theme #############################################################
+##【Build a theme】#############################################################
 #' @importFrom rstudioapi create_theme add_theme
 #' @export
 mytheme <- function() {
@@ -870,48 +872,7 @@ mytheme <- function() {
 }
 
 
-#### Bulid a package ###########################################################
+##【Build a package】###########################################################
 # devtools::load_all() # loading the latest package for testing
 # ctrl+alt+shift+R
 devtools::build()
-
-
-
-## test ########################################################################
-set.seed(123)
-dt <- data.frame(a = rnorm(100), b = rnorm(100), c = sample(c("A", "B", "C"), 100, replace = TRUE),
-                 d = sample(c(0.2, 1), 100, replace = TRUE), stringsAsFactors = FALSE)
-
-fplot.x <- dt$c
-fplot.y <- dt$d
-
-fplot <- function(dt, fplot.x, fplot.y) {
-    if(!is.character(fplot.x) & !is.numeric(fplot.x)) {
-        stop("Input variables must be numeric or character.")
-    }
-    if(!is.numeric(fplot.y)) {
-        stop("Input variables must be numeric.")
-    }
-    if(length(unique(fplot.y)) == 2 && !all((0 %in% fplot.y) && (1 %in% fplot.y))) {
-        stop("Input binny variables must be 0 or 1.")
-    }
-    if (length(unique(fplot.y)) == 2) {
-        ggplot(dt, aes(x = fplot.x , y = fplot.y)) +
-            geom_bar(stat = "identity",fill = "black",aes(y = ..prop.., group = 1)) +
-            labs(y = "Proportion")
-    }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
