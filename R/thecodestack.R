@@ -164,6 +164,44 @@ fs <- function(fs.varibale,fs.group = NA){
     return(fs)
 }
 
+## linear regression ###########################################################
+#' Title
+#'
+#' @param fp.exposure
+#' @param fp.outcome
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fp <- function(fp.exposure, fp.outcome) {
+    plot(fp.exposure, fp.outcome)
+
+    fp.lm <- lm(fp.outcome ~ fp.exposure)
+    fp.predictions <- predict(fp.lm)
+    fp.equation <-
+        paste0("y = ",
+               round(coef(fp.lm)[1], 2),
+               " + ",
+               round(coef(fp.lm)[2], 2),
+               "x")
+    abline(fp.lm, col = "black")
+    cat(
+        "\n",
+        paste("Regression equation:", fp.equation),
+        "\n",
+        paste("Mean absolute error:",
+              round_function(mean(abs(fp.outcome - fp.predictions)),3)),
+        "\n",
+        paste("Root mean square wrror:",
+              round_function(sqrt(mean((fp.outcome - fp.predictions) ^ 2)),3)),
+        "\n",
+        paste("R2:",
+              round_function(summary(fp.lm)$r.squared,3)),
+        sep = ""
+    )
+}
+
 ## dummy variable ##############################################################
 #' Title
 #'
@@ -686,8 +724,8 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
 #'
 #' @examples
 Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
-    FG.cox_model <- cmprsk::crr(time = FG.time,
-                                status = FG.status,
+    FG.cox_model <- cmprsk::crr(ftime = FG.time,
+                                fstatus = FG.status,
                                 FG.model,
                                 failcode = 1,
                                 cencode = 0
