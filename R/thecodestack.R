@@ -259,46 +259,6 @@ update.J.cal <- function(J.calendar) {
 }
 
 ##【Data analysis】#############################################################
-## Cochran Armitage Trend Test #################################################
-# dose <- matrix(c(10,9,10,7, 0,1,0,3),
-#                byrow=TRUE,
-#                nrow=2,
-#                dimnames=list(resp=0:1, dose=0:3)
-#                )
-# prop.trend.test(dose)
-#' Title
-#'
-#' @param Realtive_risk_number.exposure
-#' @param Realtive_risk_number.group
-#'
-#' @return
-#' @export
-#'
-#' @examples
-Cochran_Armitage_Trend_Test <- function(Realtive_risk_number.exposure,
-                                        Realtive_risk_number.group){
-    Realtive_risk_number.crosstable <- gmodels::CrossTable(
-        Realtive_risk_number.exposure,
-        Realtive_risk_number.group,
-        prop.t = FALSE,
-        prop.r = FALSE,
-        prop.c = FALSE
-    )
-    Realtive_risk_number.occurtable <- data.frame(
-        No.of_non_cases = Realtive_risk_number.crosstable$t[1,],
-        No.of_cases     = Realtive_risk_number.crosstable$t[2,]
-    )
-    ##!! dont use data.table because data.table has no row title
-    Realtive_risk_number.horizontal_occurtable <- as.matrix(
-        t(Realtive_risk_number.occurtable)
-    )
-    print(Realtive_risk_number.horizontal_occurtable)
-    DescTools::CochranArmitageTest(Realtive_risk_number.horizontal_occurtable)
-}
-
-
-
-
 ## Table 1 #####################################################################
 #' Title
 #'
