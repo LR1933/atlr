@@ -1,8 +1,7 @@
-## the package for R functions and packages ###################################3
-## 2023/04/05 version ##########################################################
-## shift + ctrl + alt + R
+## the package for R functions and packages ####################################
+## 2023/07/20 version ##########################################################
 
-##【Data Cleansing】############################################################
+##【Data cleansing】############################################################
 ## rounding ####################################################################
 #' Title
 #'
@@ -107,25 +106,25 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
     cat(
         "\n",
         paste(
-            "The type of variable is",
+            "The type/class of variable: ",
             typeof(fvar.variable),
             "/",
             class(fvar.variable)
         ),
-        "\n",
-        paste("The number of zero variables is",
+        "\n","\n",
+        paste("The number of zero variables             : ",
               sum(fvar.variable == 0)
         ),
         "\n",
-        paste("The number of missing variables is",
+        paste("The number of missing variables          : ",
               sum(is.na(fvar.variable))
         ),
         "\n",
-        paste("The number of null variables is",
+        paste("The number of null variables             : ",
               sum(is.null(fvar.variable))
         ),
         "\n",
-        paste("The number of variables containing space is",
+        paste("The number of variables containing space : ",
               sum(grepl(" ", fvar.variable))
         ),
         sep = ""
@@ -167,61 +166,183 @@ fs <- function(fs.varibale,fs.group = NA){
 ## linear regression ###########################################################
 #' Title
 #'
-#' @param fp.exposure
-#' @param fp.outcome
+#' @param fl.outcome
+#' @param fl.exposure
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fp <- function(fp.exposure, fp.outcome) {
-    plot(fp.exposure, fp.outcome)
+fl <- function(fl.outcome,fl.exposure) {
+    plot(fl.exposure, fl.outcome)
 
-    fp.lm <- lm(fp.outcome ~ fp.exposure)
-    fp.predictions <- predict(fp.lm)
-    fp.equation <-
+    fl.lm <- lm(fl.outcome ~ fl.exposure)
+    fl.predictions <- predict(fl.lm)
+    fl.equation <-
         paste0("y = ",
-               round(coef(fp.lm)[1], 2),
+               round(coef(fl.lm)[1], 2),
                " + ",
-               round(coef(fp.lm)[2], 2),
+               round(coef(fl.lm)[2], 2),
                "x")
-    abline(fp.lm, col = "black")
+    abline(fl.lm, col = "black")
     cat(
         "\n",
-        paste("Regression equation:", fp.equation),
+        paste("Regression equation: ", fl.equation),
         "\n",
-        paste("Mean absolute error:",
-              round_function(mean(abs(fp.outcome - fp.predictions)),3)),
+        paste("Mean absolute error: ",
+              round_function(mean(abs(fl.outcome - fl.predictions)),3)),
         "\n",
-        paste("Root mean square wrror:",
-              round_function(sqrt(mean((fp.outcome - fp.predictions) ^ 2)),3)),
+        paste("Root mean square wrror: ",
+              round_function(sqrt(mean((fl.outcome - fl.predictions) ^ 2)),3)),
         "\n",
-        paste("R2:",
-              round_function(summary(fp.lm)$r.squared,3)),
+        paste("R square: ",
+              round_function(summary(fl.lm)$r.squared,3)),
         sep = ""
+    )
+}
+
+## linear check ################################################################
+#' Title
+#'
+#' @param fsp.y
+#' @param fsp.x
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fsp <- function(fsp.y,fsp.x) {
+    fsp.data <- data.frame(eval(fsp.x), eval(fsp.y))
+    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.x)))
+    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
+    colnames(fsp.data) <- c(fsp.xname,
+                            fsp.yname)
+
+    if (!is.numeric(fsp.y) || !is.numeric(fsp.x)) {
+        stop("Inputed values must be numeric.")
+    }
+
+    if (length(unique(fsp.x)) > 2) {
+        fsp.fit1 <- lm(fsp.y ~ poly(fsp.x, 1))
+        fsp.fit2 <- lm(fsp.y ~ poly(fsp.x, 2))
+        fsp.fit3 <- lm(fsp.y ~ poly(fsp.x, 3))
+
+        fsp.data$poly1 <- predict(fsp.fit1, fsp.data)
+        fsp.data$poly2 <- predict(fsp.fit2, fsp.data)
+        fsp.data$poly3 <- predict(fsp.fit3, fsp.data)
+    } else {
+        fsp.fit1 <- glm(fsp.y ~ poly(fsp.x, 1),
+                        family = binomial(link = "logit"))
+        fsp.fit2 <- glm(fsp.y ~ poly(fsp.x, 2),
+                        family = binomial(link = "logit"))
+        fsp.fit3 <- glm(fsp.y ~ poly(fsp.x, 3),
+                        family = binomial(link = "logit"))
+
+        fsp.data$poly1 <- predict(fsp.fit1, fsp.data, type = "link")
+        fsp.data$poly2 <- predict(fsp.fit2, fsp.data, type = "link")
+        fsp.data$poly3 <- predict(fsp.fit3, fsp.data, type = "link")
+    }
+
+    fsp.data <- gather(fsp.data,
+                       key = "model",
+                       value = "value",
+                       c("poly1", "poly2", "poly3"))
+
+    fsp.plot <- ggplot(fsp.data,
+                       aes_string(x = fsp.xname,
+                                  y = fsp.yname)) +
+        geom_point() +
+        geom_line(aes(
+            x = !!as.name(fsp.xname),
+            y = value,
+            linetype = model,
+            colour = model
+        ),
+        linewidth = 1.0) +
+        scale_color_manual(values = c(
+            "poly1" = "black",
+            "poly2" = "red",
+            "poly3" = "red")) +
+        scale_linetype_manual(values = c(
+            "poly1" = "solid",
+            "poly2" = "solid",
+            "poly3" = "dashed"
+        )) +
+        labs(x = as.character(substitute(fsp.xname)),
+             y = as.character(substitute(fsp.yname)),
+             title = "Scatter plot") +
+        theme_minimal() +
+        theme(
+            plot.title       = element_text(
+                family = "Times",
+                size = 11,
+                face = "bold"
+            ),
+            plot.subtitle    = element_text(vjust     = 1),
+            plot.caption     = element_text(vjust     = 1),
+            axis.line        = element_line(linewidth = 0.5,
+                                            linetype = "solid"),
+            panel.grid.major = element_line(colour    = "white"),
+            axis.title       = element_text(
+                family    = "Times",
+                colour    = "Black",
+                size      = 9
+            ),
+            axis.text        = element_text(
+                family    = "Times",
+                colour    = "Black",
+                size      = 9
+            ),
+            panel.background = element_rect(
+                fill     = "gray99",
+                colour   = "white",
+                linetype = "twodash"
+            ),
+            plot.background  = element_rect(fill     = "white")
+        )
+    print(fsp.plot)
+    cat(
+        "\n",
+        paste(
+            "R square for poly1 model: ",
+            round(summary(fsp.fit1)$r.squared, 3),
+            sep = ""
+        ),
+        "\n",
+        paste(
+            "R square for poly2 model: ",
+            round(summary(fsp.fit2)$r.squared, 3),
+            sep = ""
+        ),
+        "\n",
+        paste(
+            "R square for poly3 model: ",
+            round(summary(fsp.fit3)$r.squared, 3),
+            sep = ""
+        )
     )
 }
 
 ## dummy variable ##############################################################
 #' Title
 #'
-#' @param dv.variable
-#' @param dv.n
+#' @param fdv.variable
+#' @param fdv.n
 #'
 #' @return
 #' @export
 #'
 #' @examples
-dv <- function(dv.variable,dv.n){
-    dv.dummy <- cut(dv.variable,
-                    quantile(dv.variable,
-                             probs = seq(0, 1, 1/dv.n),
+fdv <- function(fdv.variable,fdv.n){
+    fdv.dummy <- cut(fdv.variable,
+                    quantile(fdv.variable,
+                             probs = seq(0, 1, 1/fdv.n),
                              na.rm = TRUE
                     ),
-                    labels = c(0:(dv.n - 1)),
+                    labels = c(0:(fdv.n - 1)),
                     include.lowest = TRUE
     )
-    return(dv.dummy)
+    return(fdv.dummy)
 }
 
 ## update Japanese .calender ###################################################
@@ -234,7 +355,7 @@ dv <- function(dv.variable,dv.n){
 #'
 #' @examples
 update.J.cal <- function(J.calendar) {
-    cat("This function supports a conversion range between 大正1年(1912) and 令和50年(2068).")
+    cat("Supports a conversion range between 大正1年(1912) and 令和50年(2068)")
     for (i in 1:15) {
         old_val <- paste0("大", i, "\\.")
         new_val <- paste0(1911 + i, "\\.")
@@ -273,7 +394,7 @@ update.J.cal <- function(J.calendar) {
 #' @export
 #'
 #' @examples
-Table_one <- function(Table_one.analysis_data,
+Table.one <- function(Table_one.analysis_data,
                       Table_one.all_varibales,
                       Table_one.categorical_variables,
                       Table_one.group = NA,
