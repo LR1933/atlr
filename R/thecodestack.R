@@ -213,60 +213,63 @@ fl <- function(fl.outcome,fl.exposure) {
 #' @examples
 fsp <- function(fsp.y,fsp.x) {
     fsp.data <- data.frame(eval(fsp.x), eval(fsp.y))
+    colnames(fsp.data) <- c("fsp.x",
+                            "fsp.y")
     fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.x)))
     fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
-    colnames(fsp.data) <- c(fsp.xname,
-                            fsp.yname)
 
     if (!is.numeric(fsp.y) || !is.numeric(fsp.x)) {
         stop("Inputed values must be numeric.")
     }
 
-    if (length(unique(fsp.x)) > 2) {
-        fsp.fit1 <- lm(fsp.y ~ poly(fsp.x, 1))
-        fsp.fit2 <- lm(fsp.y ~ poly(fsp.x, 2))
-        fsp.fit3 <- lm(fsp.y ~ poly(fsp.x, 3))
+    if (length(unique(fsp.y)) > 2) {
+        fsp.fit1 <- ols(fsp.y ~ fsp.x)
+        fsp.fit3 <- ols(fsp.y ~ rcs(fsp.x, 3))
+        fsp.fit4 <- ols(fsp.y ~ rcs(fsp.x, 4))
+        fsp.fit5 <- ols(fsp.y ~ rcs(fsp.x, 5))
 
-        fsp.data$poly1 <- predict(fsp.fit1, fsp.data)
-        fsp.data$poly2 <- predict(fsp.fit2, fsp.data)
-        fsp.data$poly3 <- predict(fsp.fit3, fsp.data)
+        fsp.data$linear <- predict(fsp.fit1, fsp.data)
+        fsp.data$rcs3 <- predict(fsp.fit3, fsp.data)
+        fsp.data$rcs4 <- predict(fsp.fit4, fsp.data)
+        fsp.data$rcs5 <- predict(fsp.fit5, fsp.data)
     } else {
-        fsp.fit1 <- glm(fsp.y ~ poly(fsp.x, 1),
-                        family = binomial(link = "logit"))
-        fsp.fit2 <- glm(fsp.y ~ poly(fsp.x, 2),
-                        family = binomial(link = "logit"))
-        fsp.fit3 <- glm(fsp.y ~ poly(fsp.x, 3),
-                        family = binomial(link = "logit"))
+        fsp.fit1 <- lrm(fsp.y ~ fsp.x)
+        fsp.fit3 <- lrm(fsp.y ~ rcs(fsp.x, 3))
+        fsp.fit4 <- lrm(fsp.y ~ rcs(fsp.x, 4))
+        fsp.fit5 <- lrm(fsp.y ~ rcs(fsp.x, 5))
 
-        fsp.data$poly1 <- predict(fsp.fit1, fsp.data, type = "link")
-        fsp.data$poly2 <- predict(fsp.fit2, fsp.data, type = "link")
-        fsp.data$poly3 <- predict(fsp.fit3, fsp.data, type = "link")
+        fsp.data$linear <- predict(fsp.fit1, fsp.data, type = "lp")
+        fsp.data$rcs3 <- predict(fsp.fit3, fsp.data, type = "lp")
+        fsp.data$rcs4 <- predict(fsp.fit4, fsp.data, type = "lp")
+        fsp.data$rcs5 <- predict(fsp.fit5, fsp.data, type = "lp")
     }
 
     fsp.data <- gather(fsp.data,
                        key = "model",
                        value = "value",
-                       c("poly1", "poly2", "poly3"))
+                       c("linear", "rcs3", "rcs4", "rcs5"))
 
     fsp.plot <- ggplot(fsp.data,
-                       aes_string(x = fsp.xname,
-                                  y = fsp.yname)) +
+                       aes_string(x = "fsp.x",
+                                  y = "fsp.y")) +
         geom_point() +
         geom_line(aes(
-            x = !!as.name(fsp.xname),
+            x = fsp.x,
             y = value,
             linetype = model,
             colour = model
         ),
         linewidth = 1.0) +
         scale_color_manual(values = c(
-            "poly1" = "black",
-            "poly2" = "red",
-            "poly3" = "red")) +
+            "linear" = "black",
+            "rcs3" = "red",
+            "rcs4" = "red",
+            "rcs5" = "red")) +
         scale_linetype_manual(values = c(
-            "poly1" = "solid",
-            "poly2" = "solid",
-            "poly3" = "dashed"
+            "linear" = "solid",
+            "rcs3" = "solid",
+            "rcs4" = "dashed",
+            "rcs5" = "dotted"
         )) +
         labs(x = as.character(substitute(fsp.xname)),
              y = as.character(substitute(fsp.yname)),
@@ -301,27 +304,65 @@ fsp <- function(fsp.y,fsp.x) {
             plot.background  = element_rect(fill     = "white")
         )
     print(fsp.plot)
-    cat(
-        "\n",
-        paste(
-            "R square for poly1 model: ",
-            round(summary(fsp.fit1)$r.squared, 3),
-            sep = ""
-        ),
-        "\n",
-        paste(
-            "R square for poly2 model: ",
-            round(summary(fsp.fit2)$r.squared, 3),
-            sep = ""
-        ),
-        "\n",
-        paste(
-            "R square for poly3 model: ",
-            round(summary(fsp.fit3)$r.squared, 3),
-            sep = ""
+
+
+    if (length(unique(fsp.y)) > 2) {
+        cat(
+            "\n",
+            paste(
+                "R square for linear model: ",
+                round_function(fsp.fit1$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "R square for rcs model with 3 konts: ",
+                round_function(fsp.fit3$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "R square for rcs model with 4 konts: ",
+                round_function(fsp.fit4$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "R square for rcs model with 5 konts: ",
+                round_function(fsp.fit5$stats["R2"], 3),
+                sep = ""
+            )
         )
-    )
+    } else {
+        cat(
+            "\n",
+            paste(
+                "Pseudo R square for linear model: ",
+                round_function(fsp.fit1$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "Pseudo R square for rcs model with 3 konts: ",
+                round_function(fsp.fit3$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "Pseudo R square for rcs model with 4 konts: ",
+                round_function(fsp.fit4$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste(
+                "Pseudo R square for rcs model with 5 konts: ",
+                round_function(fsp.fit5$stats["R2"], 3),
+                sep = ""
+            )
+        )
+    }
 }
+
 
 ## dummy variable ##############################################################
 #' Title
