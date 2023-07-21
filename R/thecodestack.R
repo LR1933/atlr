@@ -111,21 +111,16 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
             "/",
             class(fvar.variable)
         ),
-        "\n","\n",
-        paste("The number of zero variables             : ",
-              sum(fvar.variable == 0)
-        ),
         "\n",
-        paste("The number of missing variables          : ",
-              sum(is.na(fvar.variable))
-        ),
-        "\n",
-        paste("The number of null variables             : ",
-              sum(is.null(fvar.variable))
-        ),
-        "\n",
-        paste("The number of variables containing space : ",
-              sum(grepl(" ", fvar.variable))
+        paste(
+            "The number of zero/missing/null/space-inclusive variables: ",
+            sum(fvar.variable %in% c(0,"0"), na.rm = TRUE),
+            "/",
+            sum(is.na(fvar.variable)),
+            "/",
+            sum(is.null(fvar.variable)),
+            "/",
+            sum(grepl(" ", fvar.variable))
         ),
         sep = ""
     )
@@ -144,17 +139,18 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 fs <- function(fs.varibale,fs.group = NA){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
-    fs  <- fsd[, .(Nrow    = NROW(var),
-                 　Sum     = round_function(sum(var, na.rm = TRUE), 8),
-                　 Mean    = round_function(mean(var, na.rm = TRUE), 8),
-                   stdDev  = round_function(sd(var, na.rm = TRUE),8),
-                   Min     = round_function(min(var, na.rm = TRUE), 8),
+    fs  <- fsd[, .(N       = NROW(var),
+                   Sum     = round_function(sum(var,      na.rm = TRUE), 3),
+                   Mean    = round_function(mean(var,     na.rm = TRUE), 3),
+                   stdDev  = round_function(sd(var,       na.rm = TRUE), 3),
+                   Min     = round_function(min(var,      na.rm = TRUE), 3),
                    Q25     = round_function(quantile(var, probs = 0.25,
-                                                     na.rm = TRUE), 8),
-                   Median  = round_function(median(var, na.rm = TRUE), 8),
+                                                     na.rm = TRUE), 3),
+                   Median  = round_function(median(var,   na.rm = TRUE), 3),
                    Q75     = round_function(quantile(var, probs = 0.75,
-                                                     na.rm = TRUE), 8),
-                   Max     = round_function(max(var, na.rm = TRUE), 8),
+                                                     na.rm = TRUE), 3),
+                   Max     = round_function(max(var,      na.rm = TRUE), 3),
+                   length  = length(unique(var)),
                    Missing = sum(is.na(var))
     ),
     by = cat]
@@ -211,50 +207,62 @@ fl <- function(fl.outcome,fl.exposure) {
 #' @export
 #'
 #' @examples
-fsp <- function(fsp.y,fsp.x) {
-    fsp.data <- data.frame(eval(fsp.x), eval(fsp.y))
-    colnames(fsp.data) <- c("fsp.x",
-                            "fsp.y")
-    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.x)))
-    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
-
+fsp <- function(fsp.y, fsp.x) {
     if (!is.numeric(fsp.y) || !is.numeric(fsp.x)) {
         stop("Inputed values must be numeric.")
     }
 
-    if (length(unique(fsp.y)) > 2) {
-        fsp.fit1 <- ols(fsp.y ~ fsp.x)
-        fsp.fit3 <- ols(fsp.y ~ rcs(fsp.x, 3))
-        fsp.fit4 <- ols(fsp.y ~ rcs(fsp.x, 4))
-        fsp.fit5 <- ols(fsp.y ~ rcs(fsp.x, 5))
+    fsp.ymissing <- sum(is.na(fsp.y))
+    fsp.xmissing <- sum(is.na(fsp.x))
 
-        fsp.data$linear <- predict(fsp.fit1, fsp.data)
-        fsp.data$rcs3 <- predict(fsp.fit3, fsp.data)
-        fsp.data$rcs4 <- predict(fsp.fit4, fsp.data)
-        fsp.data$rcs5 <- predict(fsp.fit5, fsp.data)
+
+    fsp.data <- data.frame(eval(fsp.x), eval(fsp.y))
+    fsp.data <- fsp.data[complete.cases(fsp.data),]
+    colnames(fsp.data) <- c("fsp.data.x",
+                            "fsp.data.y")
+
+    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.x)))
+    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
+
+    if (length(unique(fsp.data$fsp.data.y)) > 2) {
+        fsp.fit1 <- ols(fsp.data$fsp.data.y ~ fsp.data$fsp.data.x)
+        fsp.fit3 <-
+            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 3))
+        fsp.fit4 <-
+            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 4))
+        fsp.fit5 <-
+            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 5))
+
+        fsp.data$linear <- predict(fsp.fit1)
+        fsp.data$rcs3   <- predict(fsp.fit3)
+        fsp.data$rcs4   <- predict(fsp.fit4)
+        fsp.data$rcs5   <- predict(fsp.fit5)
     } else {
-        fsp.fit1 <- lrm(fsp.y ~ fsp.x)
-        fsp.fit3 <- lrm(fsp.y ~ rcs(fsp.x, 3))
-        fsp.fit4 <- lrm(fsp.y ~ rcs(fsp.x, 4))
-        fsp.fit5 <- lrm(fsp.y ~ rcs(fsp.x, 5))
+        fsp.fit1 <- lrm(fsp.data$fsp.data.y ~ fsp.data$fsp.data.x)
+        fsp.fit3 <-
+            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 3))
+        fsp.fit4 <-
+            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 4))
+        fsp.fit5 <-
+            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 5))
 
-        fsp.data$linear <- predict(fsp.fit1, fsp.data, type = "lp")
-        fsp.data$rcs3 <- predict(fsp.fit3, fsp.data, type = "lp")
-        fsp.data$rcs4 <- predict(fsp.fit4, fsp.data, type = "lp")
-        fsp.data$rcs5 <- predict(fsp.fit5, fsp.data, type = "lp")
+        fsp.data$linear <- predict(fsp.fit1, type = "lp")
+        fsp.data$rcs3   <- predict(fsp.fit3, type = "lp")
+        fsp.data$rcs4   <- predict(fsp.fit4, type = "lp")
+        fsp.data$rcs5   <- predict(fsp.fit5, type = "lp")
     }
 
-    fsp.data <- gather(fsp.data,
-                       key = "model",
-                       value = "value",
-                       c("linear", "rcs3", "rcs4", "rcs5"))
+    fsp.gather <- gather(fsp.data,
+                         key   = "model",
+                         value = "value",
+                         c("linear", "rcs3", "rcs4", "rcs5"))
 
-    fsp.plot <- ggplot(fsp.data,
-                       aes_string(x = "fsp.x",
-                                  y = "fsp.y")) +
+    fsp.plot <- ggplot(fsp.gather,
+                       aes_string(x = "fsp.data.x",
+                                  y = "fsp.data.y")) +
         geom_point() +
         geom_line(aes(
-            x = fsp.x,
+            x = fsp.data.x,
             y = value,
             linetype = model,
             colour = model
@@ -264,16 +272,19 @@ fsp <- function(fsp.y,fsp.x) {
             "linear" = "black",
             "rcs3" = "red",
             "rcs4" = "red",
-            "rcs5" = "red")) +
+            "rcs5" = "red"
+        )) +
         scale_linetype_manual(values = c(
             "linear" = "solid",
             "rcs3" = "solid",
             "rcs4" = "dashed",
             "rcs5" = "dotted"
         )) +
-        labs(x = as.character(substitute(fsp.xname)),
-             y = as.character(substitute(fsp.yname)),
-             title = "Scatter plot") +
+        labs(
+            x = as.character(substitute(fsp.xname)),
+            y = as.character(substitute(fsp.yname)),
+            title = "Scatter plot"
+        ) +
         theme_minimal() +
         theme(
             plot.title       = element_text(
@@ -306,8 +317,20 @@ fsp <- function(fsp.y,fsp.x) {
     print(fsp.plot)
 
 
-    if (length(unique(fsp.y)) > 2) {
+    if (length(unique(fsp.data$fsp.data.y)) > 2) {
         cat(
+            "\n",
+            paste("The number of missing values in y: ", fsp.ymissing),
+            "\n",
+            paste("The number of missing values in x: ", fsp.xmissing),
+            "\n",
+            "\n",
+
+            paste0("y = ",
+                   round(coef(fsp.fit1)[1], 2),
+                   " + ",
+                   round(coef(fsp.fit1)[2], 2),
+                   "x"),
             "\n",
             paste(
                 "R square for linear model: ",
@@ -315,11 +338,45 @@ fsp <- function(fsp.y,fsp.x) {
                 sep = ""
             ),
             "\n",
+            paste("Mean absolute error: ",
+                  round_function(mean(
+                      abs(fsp.data$fsp.data.y -
+                              fsp.data$linear)
+                  ), 3),
+                  sep = ""),
+            "\n",
+            paste(
+                "Root mean square wrror: ",
+                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                                              fsp.data$linear) ^ 2
+                )), 3),
+                sep = ""
+            ),
+
+            "\n",
+            "\n",
             paste(
                 "R square for rcs model with 3 konts: ",
                 round_function(fsp.fit3$stats["R2"], 3),
                 sep = ""
             ),
+            "\n",
+            paste("Mean absolute error: ",
+                  round_function(mean(
+                      abs(fsp.data$fsp.data.y -
+                              fsp.data$rcs3)
+                  ), 3),
+                  sep = ""),
+            "\n",
+            paste(
+                "Root mean square wrror: ",
+                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                                              fsp.data$rcs3) ^ 2
+                )), 3),
+                sep = ""
+            ),
+
+            "\n",
             "\n",
             paste(
                 "R square for rcs model with 4 konts: ",
@@ -327,15 +384,53 @@ fsp <- function(fsp.y,fsp.x) {
                 sep = ""
             ),
             "\n",
+            paste("Mean absolute error: ",
+                  round_function(mean(
+                      abs(fsp.data$fsp.data.y -
+                              fsp.data$rcs4)
+                  ), 3),
+                  sep = ""),
+            "\n",
+            paste(
+                "Root mean square wrror: ",
+                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                                              fsp.data$rcs4) ^ 2
+                )), 3),
+                sep = ""
+            ),
+
+            "\n",
+            "\n",
             paste(
                 "R square for rcs model with 5 konts: ",
                 round_function(fsp.fit5$stats["R2"], 3),
+                sep = ""
+            ),
+            "\n",
+            paste("Mean absolute error: ",
+                  round_function(mean(
+                      abs(fsp.data$fsp.data.y -
+                              fsp.data$rcs5)
+                  ), 3),
+                  sep = ""),
+            "\n",
+            paste(
+                "Root mean square wrror: ",
+                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                                              fsp.data$rcs5) ^ 2
+                )), 3),
                 sep = ""
             )
         )
     } else {
         cat(
             "\n",
+            paste("The number of missing values in y: ", fsp.ymissing),
+            "\n",
+            paste("The number of missing values in x: ", fsp.xmissing),
+            "\n",
+            "\n",
+
             paste(
                 "Pseudo R square for linear model: ",
                 round_function(fsp.fit1$stats["R2"], 3),
@@ -363,6 +458,77 @@ fsp <- function(fsp.y,fsp.x) {
     }
 }
 
+## Categorical  check ##########################################################
+#' Title
+#'
+#' @param fbp.y
+#' @param fbp.x
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fbp <- function(fbp.y, fbp.x) {
+    fsp.data <- data.frame(eval(fbp.x), eval(fbp.y))
+    fbp.xname <- gsub(".*\\$", "", deparse(substitute(fbp.x)))
+    fbp.yname <- gsub(".*\\$", "", deparse(substitute(fbp.y)))
+
+    if (any(is.na(fbp.y))) {
+        stop("y cannot contain missing values")
+    }
+    if (any(is.na(fbp.x))) {
+        stop("x cannot contain missing values")
+    }
+
+    if (!is.numeric(fbp.y)) {
+        stop("y must be a numeric variable")
+    }
+    if ((!is.numeric(fbp.x) | !is.character(fbp.x)) &&
+        length(unique(fbp.x)) > 10) {
+        stop("x must beless than 10 unique values")
+    }
+
+    fbp.plot <-
+        ggplot(fsp.data, aes(x = factor(fbp.x), y = fbp.y)) +
+        coord_cartesian() +
+        geom_boxplot(
+            outlier.colour = "red",
+            outlier.shape  = 11,
+            outlier.size   = 0.5,
+            width          = 0.5,
+            lwd            = 0.8
+        ) +
+        #       stat_boxplot(geom  = 'errorbar',
+        #                     width = 0.2,
+        #                   cex   = 0.2) +
+        #      geom_dotplot(
+        #           binaxis    = 'y',
+        #           stackdir   = 'center',
+        #           position   = position_jitter(
+        #              seed   = 161893,
+        #             width  = 0.3,
+        #              height = 0.3
+        #          ),
+    #          binwidth   = 1,
+    #          dotsize = 0.5,
+    #          colour = "black",
+    #           fill = "grey70"
+    #     ) +
+    labs(
+        title = "Boxplot",
+        x = as.character(substitute(fbp.xname)),
+        y = as.character(substitute(fbp.yname))
+    ) +
+        theme_classic() +
+        theme(
+            axis.text.x  = element_text(size = 10, colour = "black"),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size = 10, colour = "black"),
+            axis.text.y  = element_text(size = 10, colour = "black"),
+        )
+    print(fs(fbp.y, fbp.x))
+    print(fbp.plot)
+}
 
 ## dummy variable ##############################################################
 #' Title
@@ -376,12 +542,12 @@ fsp <- function(fsp.y,fsp.x) {
 #' @examples
 fdv <- function(fdv.variable,fdv.n){
     fdv.dummy <- cut(fdv.variable,
-                    quantile(fdv.variable,
-                             probs = seq(0, 1, 1/fdv.n),
-                             na.rm = TRUE
-                    ),
-                    labels = c(0:(fdv.n - 1)),
-                    include.lowest = TRUE
+                     quantile(fdv.variable,
+                              probs = seq(0, 1, 1/fdv.n),
+                              na.rm = TRUE
+                     ),
+                     labels = c(0:(fdv.n - 1)),
+                     include.lowest = TRUE
     )
     return(fdv.dummy)
 }
@@ -441,7 +607,7 @@ Table.one <- function(Table_one.analysis_data,
                       Table_one.group = NA,
                       Table_one.nonnormal_variables = NULL,
                       Table_one.contDigits = 2
-                      ) {
+) {
     if (is.na(Table_one.group)) {
         Table_one.print <- print(
             tableone::CreateTableOne(
@@ -546,26 +712,26 @@ fpn <- function(fpn.exposure,
             dec       = "."
         )
     } else {
-    if (fpn.test) {
-        fpn.crosstable <- gmodels::CrossTable(
-            fpn.event,
-            fpn.exposure,
-            fisher = TRUE,
-            prop.t = FALSE,
-            prop.r = FALSE,
-            prop.c = FALSE
-        )
-    } else {
-        fpn.crosstable <- gmodels::CrossTable(
-            fpn.event,
-            fpn.exposure,
-            fisher = FALSE,
-            prop.t = FALSE,
-            prop.r = FALSE,
-            prop.c = FALSE
-        )
+        if (fpn.test) {
+            fpn.crosstable <- gmodels::CrossTable(
+                fpn.event,
+                fpn.exposure,
+                fisher = TRUE,
+                prop.t = FALSE,
+                prop.r = FALSE,
+                prop.c = FALSE
+            )
+        } else {
+            fpn.crosstable <- gmodels::CrossTable(
+                fpn.event,
+                fpn.exposure,
+                fisher = FALSE,
+                prop.t = FALSE,
+                prop.r = FALSE,
+                prop.c = FALSE
+            )
+        }
     }
-}
 }
 
 ## number of person-years ######################################################
@@ -620,7 +786,7 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
     ORs.observation <- paste("Number", "of", "observation", "is",
                              length(residuals(logistic_model)))
     ORs.model_results <- exp(cbind(OR = coef(logistic_model),
-                                     confint(logistic_model)))
+                                   confint(logistic_model)))
     ORs.round_model_results <- round_function(ORs.model_results,2)
     ORs.table <- data.table(Exposures = row.names(ORs.round_model_results),
                             ORs       = paste(ORs.round_model_results[,1],
@@ -645,6 +811,71 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
     print(ORs.table)
     print(ORs.horizontal_table_print)
     print(noquote(ORs.observation))
+    write.table(ORs.horizontal_table_print,
+                paste0("clipboard-",
+                       formatC(100*100,
+                               format = "f",
+                               digits = 0)
+                ),
+                sep       = "\t",
+                row.names = FALSE,
+                col.names = FALSE,
+                dec       = "."
+    )
+}
+
+#' logistic model
+#'
+#' @param ORs.analysis_data
+#' @param ORs.model
+#' @param ORs.n
+#'
+#' @return
+#' @export
+#'
+#' @examples
+flrm <- function(ORs.analysis_data, ORs.model, ORs.n = 2){
+    logistic_model.fit <- glm(ORs.model,
+                              data   = ORs.analysis_data,
+                              family = binomial(link = 'logit'))
+
+    ORs.model_results <- exp(cbind(OR = coef(logistic_model.fit),
+                                   confint(logistic_model.fit)))
+
+    ORs.round_model_results <- round_function(ORs.model_results, 2)
+    ORs.table <-
+        data.table(
+            Exposures = row.names(ORs.round_model_results),
+            Odds_ratios       = paste(
+                ORs.round_model_results[, 1],
+                " (",
+                ORs.round_model_results[, 2],
+                "-",
+                ORs.round_model_results[, 3],
+                ")",
+                sep = ""
+            ),
+            P_value   = round_function(as.numeric(
+                summary(logistic_model.fit)$coefficients[, c(4)]
+            ), 4)
+        )
+
+    ORs.horizontal_table <- as.data.frame(t(ORs.table))
+    ORs.horizontal_table_print <- ORs.horizontal_table[
+        row.names(ORs.horizontal_table) == "Odds_ratios",
+        (ncol(ORs.horizontal_table) - ORs.n + 1):ncol(ORs.horizontal_table)
+    ]
+    colnames(ORs.horizontal_table_print) <- NULL
+
+    logistic_model.rmsfit <- lrm(ORs.model,
+                                 data   = ORs.analysis_data,
+                                 x = TRUE,
+                                 y = TRUE
+    )
+
+    print(logistic_model.rmsfit)
+    print(ORs.table)
+    print(ORs.horizontal_table_print)
     write.table(ORs.horizontal_table_print,
                 paste0("clipboard-",
                        formatC(100*100,
@@ -709,11 +940,11 @@ optimism_adjusted_AUC <- function(data, fit, B){
     title(main    = paste("Optimism-adjusted AUC",
                           "\nn of bootstrap resamples:",
                           B),
-    sub     = paste("auc.app (blue line)=",
-                    round(auc.app, digits = 4),
-                    "\nadj.auc (red line)=",
-                    round(auc.adj, digits = 4)),
-    cex.sub = 0.8)
+          sub     = paste("auc.app (blue line)=",
+                          round(auc.app, digits = 4),
+                          "\nadj.auc (red line)=",
+                          round(auc.adj, digits = 4)),
+          cex.sub = 0.8)
     abline(h   = auc.app,
            col = "blue",
            lty = 2)
@@ -767,7 +998,7 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
     HRs.observation <- paste("Number", "of", "observation", "is",
                              length(residuals(cox_model)))
     HRs.model_results <- exp(cbind(HR = coef(cox_model),
-                                     confint(cox_model)))
+                                   confint(cox_model)))
     HRs.round_model_results <- round_function(HRs.model_results,2)
     HRs.table <- data.frame(Exposures = row.names(HRs.round_model_results),
                             HRs       = paste(HRs.round_model_results[,1],
@@ -781,8 +1012,8 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                                 as.numeric(
                                     summary(cox_model)$coefficients[,c(5)]
                                 ), 4
-                                )
                             )
+    )
     HRs.horizontal_table <- as.data.frame(t(HRs.table))
     summary(cox_model)
     print(HRs.table)
