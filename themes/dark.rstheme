@@ -1,4 +1,4 @@
-/* rs-theme-name: PureDark */
+/* rs-theme-name: APureDark */
 /* rs-theme-is-dark: TRUE */
 
 :root {
@@ -9,18 +9,18 @@
 
   --separator: rgb(0, 0, 0);
   --toolbar: rgb(0, 0, 0)!important;
-  --tab: rgb(75, 75, 75)!important;
+  --tab: rgb(40, 40, 40)!important;
   --selected-tab: var(--editor-background);
 
   /* syntax */
-  --type-declaration: rgb(78, 201, 176);
-  --language-constant: rgb(86, 156, 214);
-  --numeric-constant: rgb(181, 206, 168);
-  --string: rgb(206, 145, 120);
-  --regex: rgb(209, 105, 105);
-  --keyword: rgb(197, 134, 192);
-  --function-declaration: rgb(220, 220, 170);
-  --variable: rgb(156, 220, 254);
+  --type-declaration: rgb(0, 200, 0);
+  --language-constant: rgb(153, 255, 51);
+  --numeric-constant: rgb(251, 255, 100);
+  --string: rgb(255,153, 51);
+  --regex: rgb(255,0, 127);
+  --keyword: rgb(255,102, 178);
+  --function-declaration: rgb(204, 153, 255);
+  --variable: rgb(150, 200, 255);
   --comment: rgb(106, 153, 85);
 
   /* markdown */
@@ -65,7 +65,7 @@
 
 .ace_cursor {
   border-color: rgb(175, 175, 175);
-  width: 2px;
+  width: 1px;
 }
 
 .ace_marker-layer .ace_selection {
@@ -263,12 +263,12 @@
 .ace_marker-layer .ace_find_line {
   position: absolute;
   z-index: -1;
-  background-color: #3e4042;
+  background-color: #000000;
 }
 
 .ace_console_error {
-  color: #f48771;
-  background-color: #3e4042;
+  color: FF0000!important;
+  background-color: #000000;
 }
 
 #rstudio_console_output .ace_keyword {
@@ -276,7 +276,7 @@
 }
 
 #rstudio_console_output .ace_constant.ace_language {
-  color: #f48771;
+  color: #FF0000;
 }
 
 .rstudio-themes-flat.editor_dark.ace_editor_theme a {
@@ -342,21 +342,21 @@
 .rstudio-themes-flat
   > .rstudio-themes-dark
   :-webkit-any(.gwt-TabLayoutPanel, .gwt-TabLayoutPanelContent) {
-  background: rgb(75, 75, 75) !important;
+  background: rgb(0, 0, 0)!important;
 }
 
 /* splitters */
 .rstudio-themes-flat > .rstudio-themes-dark .gwt-SplitLayoutPanel-HDragger {
-  background: rgb(75, 75, 75)!important;
+  background: rgb(20, 20, 20)!important;
   cursor: ew-resize;
-  border-color: rgb(75, 75, 75)!important;
+  border-color: rgb(20, 20, 20)!important;
 }
 
 .rstudio-themes-flat > .rstudio-themes-dark .gwt-SplitLayoutPanel-VDragger {
-  background: rgb(75, 75, 75) !important;
+  background: rgb(20, 20, 20)!important;
   cursor: ns-resize;
-  border-color: rgb(75, 75, 75)!important;
-  /* box-shadow: 0 -1px 0 var(--separator) inset; */
+  border-color: rgb(20, 20, 20)!important;
+  /* box-shadow: 0 -10px 0 var(--separator) inset; */
 }
 
 /* window containers */
@@ -1169,18 +1169,3 @@
 .rstudio_rainbow_indent_fills .ace_line .ace_indent-guide:nth-child(7n+7){
     background: linear-gradient(to left, #dc91dbbb 1px, #dc91db77 1px, #dc91db77 );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
