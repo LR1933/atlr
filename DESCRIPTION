@@ -1,11 +1,11 @@
-Package: MCV
+Package: atelier
 Type: A private R package
-Title: A stack for personal functions
-Version: 2023.03.31
+Title: A tool fpackage
+Version: 2023.08.01
 Author: Lijiaqi
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
-License: 
+License: no license
 Depends:data.table
 Encoding: UTF-8
 LazyData: true

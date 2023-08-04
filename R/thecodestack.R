@@ -1,9 +1,8 @@
-## the package for R functions and packages ####################################
 ## 2023/07/20 version ##########################################################
 
 ##【Data cleansing】############################################################
 ## rounding ####################################################################
-#' Title
+#' Title rounding
 #'
 #' @param data
 #' @param n
@@ -11,7 +10,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples round_function(dt$age,2)
 round_function <- function(data, n){
     data_sign  <- sign(data)
     data       <- abs(data) * 10 ^ n
@@ -28,7 +27,7 @@ round_function <- function(data, n){
 #' @return geometric mean
 #' @export
 #'
-#' @examples
+#' @examples geo_mean(dt$crp)
 # expmean(log(x))) # geometric mean
 # exp(sum(log(x)/length(x)) # geometric mean
 # exp(mean(log(x)))
@@ -43,15 +42,16 @@ geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples fvar(dt$age)
 fvar <- function(fvar.variable, fvar.bar = TRUE) {
     fvar.variable.label <-
         sub(".*\\$", "", deparse(substitute(fvar.variable)))
-    if (fvar.bar) {
+
         if (nlevels(as.factor(fvar.variable)) <= 10) {
             print(
                 epiDisplay::tab1(
                     fvar.variable,
+                    graph = fvar.bar,
                     missing = TRUE,
                     bar.values = "frequency",
                     cex = 1,
@@ -70,6 +70,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
             print(
                 epiDisplay::tab1(
                     fvar.variable,
+                    graph = fvar.bar,
                     missing = TRUE,
                     bar.values = 0,
                     cex = 1,
@@ -84,25 +85,6 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
                 )
             )
         }
-    }
-    else {
-        print(
-            epiDisplay::tab1(
-                fvar.variable,
-                missing = TRUE,
-                bar.values = "frequency",
-                cex = 1,
-                cex.names = 1,
-                main = paste(
-                    "The frequency distribution plot of",
-                    fvar.variable.label
-                ),
-                xlab = paste(fvar.variable.label, "values"),
-                ylab = "Frequency",
-                col = "black"
-            )
-        )
-    }
     cat(
         "\n",
         paste(
@@ -834,7 +816,7 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
 #' @export
 #'
 #' @examples
-flrm <- function(ORs.analysis_data, ORs.model, ORs.n = 2){
+flm <- function(ORs.analysis_data, ORs.model, ORs.n = 2){
     logistic_model.fit <- glm(ORs.model,
                               data   = ORs.analysis_data,
                               family = binomial(link = 'logit'))
