@@ -2,7 +2,7 @@ This is a private R package with no license due to assuming no one else will use
 
 Install the package.
 ```
-devtools::install_github('lijiaqi-github/R.package.atelier')
+devtools::install_github('lijiaqi-github/R.atelier')
 ```
 
 The following is the code added to Rprofile.site when R version is updated.<br>
