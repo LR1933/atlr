@@ -750,6 +750,64 @@ fpy <- function(fpy.exposure, fpy.event) {
     )
 }
 
+## linear model ################################################################
+#' Title
+#'
+#' @param fglm.data
+#' @param fglm.model
+#' @param fglm.n
+#' @param fglm.t
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fglm <- function(fglm.data,
+                 fglm.model,
+                 fglm.n = 1,
+                 fglm.t = FALSE) {
+    fglm.ddist <- datadist(fglm.data)
+    options(datadist = fglm.ddist)
+    
+    fglm.fit <- ols(formula = fglm.model,
+                    data = environment(fglm.data))
+    
+    options(datadist = NULL)
+    fglm.fit$coefficients
+    summary(fglm.fit)
+    
+    fglm.table <- data.table(Vars = rownames(summary(fglm.fit)),
+                             Beta = fglm.fit$coefficients[-1])
+    
+    fglm.clip <-
+        fglm.table[(nrow(fglm.table) - fglm.n + 1):nrow(fglm.table)]
+    
+    if (fglm.t) {
+        fglm.clip.output <- format(round(t(fglm.clip[, 2]), 3), nsmall = 3)
+    } else{
+        fglm.clip.output <- format(round(fglm.clip[, 2], 3),  nsmall = 3)
+    }
+    
+    print(fglm.fit)
+    cat("\n")
+    cat("\n")
+    print(fglm.clip)
+    
+    write.table(
+        fglm.clip.output,
+        paste0("clipboard-",
+               formatC(
+                   100 * 100,
+                   format = "f",
+                   digits = 0
+               )),
+        sep       = "\t",
+        row.names = FALSE,
+        col.names = FALSE,
+        dec       = "."
+    )
+}
+
 ## logistic model ##############################################################
 #' Title
 #'
@@ -808,57 +866,57 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
 
 #' logistic model
 #'
-#' @param ORs.analysis_data
-#' @param ORs.model
-#' @param ORs.n
+#' @param flrm.data
+#' @param flrm.model
+#' @param flrm.n
+#' @param flrm.t
 #'
 #' @return
 #' @export
 #'
 #' @examples
-flm <- function(ORs.analysis_data, ORs.model, ORs.n = 2){
-    logistic_model.fit <- glm(ORs.model,
-                              data   = ORs.analysis_data,
-                              family = binomial(link = 'logit'))
-
-    ORs.model_results <- exp(cbind(OR = coef(logistic_model.fit),
-                                   confint(logistic_model.fit)))
-
-    ORs.round_model_results <- round_function(ORs.model_results, 2)
-    ORs.table <-
-        data.table(
-            Exposures = row.names(ORs.round_model_results),
-            Odds_ratios       = paste(
-                ORs.round_model_results[, 1],
-                " (",
-                ORs.round_model_results[, 2],
-                "-",
-                ORs.round_model_results[, 3],
-                ")",
-                sep = ""
-            ),
-            P_value   = round_function(as.numeric(
-                summary(logistic_model.fit)$coefficients[, c(4)]
-            ), 4)
-        )
-
-    ORs.horizontal_table <- as.data.frame(t(ORs.table))
-    ORs.horizontal_table_print <- ORs.horizontal_table[
-        row.names(ORs.horizontal_table) == "Odds_ratios",
-        (ncol(ORs.horizontal_table) - ORs.n + 1):ncol(ORs.horizontal_table)
-    ]
-    colnames(ORs.horizontal_table_print) <- NULL
-
-    logistic_model.rmsfit <- lrm(ORs.model,
-                                 data   = ORs.analysis_data,
-                                 x = TRUE,
-                                 y = TRUE
+flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
+    flrm.ddist <- datadist(flrm.data)
+    options(datadist = flrm.ddist)
+    
+    flrm.fit <- lrm(formula = flrm.model,
+                    data    = environment(flrm.data))
+    
+    options(datadist = NULL)
+    
+    flrm.table <- as.data.frame(summary(flrm.fit))
+    flrm.summary <- format(round(exp(flrm.table[seq(1,
+                                                    nrow(flrm.table),
+                                                    by = 2),
+                                                c(4, 6:7)]), # ORs locations
+                                 2), 
+                           nsmall = 2) 
+    
+    flrm.table <- data.table(
+        Vars  = rownames(flrm.summary),
+        ORs   = paste0(flrm.summary[,1],
+                       "(",
+                       flrm.summary[,2],
+                       "-",
+                       flrm.summary[,3],
+                       ")")
     )
-
-    print(logistic_model.rmsfit)
-    print(ORs.table)
-    print(ORs.horizontal_table_print)
-    write.table(ORs.horizontal_table_print,
+    
+    flrm.clip <- flrm.table[(nrow(flrm.table) - flrm.n + 1):nrow(flrm.table)]
+    
+    if (flrm.t) {
+        flrm.clip.output <- t(flrm.clip[,2])
+    } else{
+        flrm.clip.output <- flrm.clip[,2]
+    }
+    
+    print(flrm.fit, coefs = 0)
+    cat("\n")
+    cat("\n")
+    print(summary(flrm.fit))
+    print(flrm.clip)
+    
+    write.table(flrm.clip.output,
                 paste0("clipboard-",
                        formatC(100*100,
                                format = "f",
