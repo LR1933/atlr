@@ -135,7 +135,7 @@ fs <- function(fs.varibale,fs.group = NA){
                    length  = length(unique(var)),
                    Missing = sum(is.na(var))
     ),
-    by = cat]
+    keyby = cat]
     fs <- as.data.table(fs)
     setnames(fs, 1, "Groups")
     return(fs)
