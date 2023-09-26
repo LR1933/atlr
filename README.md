@@ -7,21 +7,18 @@ devtools::install_github('lijiaqi-github/R.atelier')
 
 The following is the code added to Rprofile.site when R version is updated.<br>
 ```
-file.edit(file.path(R.home("etc"), "Rprofile.site"))
 ################################################################################
-    options(scipen = 8,digits = 8)
-    grDevices::windowsFonts(Times = grDevices::windowsFont("Times New Roman"))
+options(scipen = 8,digits = 8)
+grDevices::windowsFonts(Times = grDevices::windowsFont("Times New Roman"))
+options(max.print = 10000)
 
-     suppressPackageStartupMessages(library(tableone))
-     suppressPackageStartupMessages(library(rms))
-     suppressPackageStartupMessages(library(epiDisplay))
-     suppressPackageStartupMessages(library(DescTools))
-     suppressPackageStartupMessages(library(tidyverse))
-     suppressPackageStartupMessages(library(data.table))
-     library(atelier)
 
-     cat("Package loading accomplished")
+cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
+cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
+cat("\033[36mType the following code to install MCV.\033[0m\n")
+cat("  devtools::install_github('lijiaqi-github/R.atelier')\n")
+cat("\n")
+cat("\033[31mPrimary packages preloading has beed accomplished.\033[0m\n")
 
-     Sys.setenv(`_R_S3_METHOD_REGISTRATION_NOTE_OVERWRITES_` = "false")
 ################################################################################
 ```
