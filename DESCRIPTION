@@ -1,12 +1,12 @@
 Package: atelier
 Type: A private R package
-Title: A tool fpackage
-Version: 2023.08.01
+Title: A package of miscellaneous R functions
+Version: 2023.10.01
 Author: Lijiaqi
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
 License: no license
-Depends:data.table, rms, Hmisc, tidyverse, DescTools, lubridate
+Depends: data.table, rms, tidyverse, DescTools, lubridate
 Encoding: UTF-8
 LazyData: true
 Theme: themes/dark.rstheme
