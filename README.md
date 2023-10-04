@@ -17,5 +17,7 @@ cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
 cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
 cat("\033[36mType the following code to install MCV.\033[0m\n")
 cat("  devtools::install_github('lijiaqi-github/R.atelier')\n")
+
+Sys.setenv(`_R_S3_METHOD_REGISTRATION_NOTE_OVERWRITES_` = "false")
 ################################################################################
 ```
