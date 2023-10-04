@@ -17,8 +17,5 @@ cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
 cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
 cat("\033[36mType the following code to install MCV.\033[0m\n")
 cat("  devtools::install_github('lijiaqi-github/R.atelier')\n")
-cat("\n")
-cat("\033[31mPrimary packages preloading has beed accomplished.\033[0m\n")
-
 ################################################################################
 ```
