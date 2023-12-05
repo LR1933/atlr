@@ -19,6 +19,32 @@ round_function <- function(data, n){
     return(data_sign * data / 10 ^ n)
 }
 
+#' Title IQR
+#'
+#' @param var
+#'
+#' @return
+#' @export
+#'
+#' @examples fiqr(dt$age)
+fiqr <- function(var) {
+    paste0(
+        round_function(quantile(
+            var, probs = 0.50, na.rm = TRUE
+        ), 3),
+        " [",
+        round_function(quantile(
+            var, probs = 0.25, na.rm = TRUE
+        ), 3),
+        ", ",
+        round_function(quantile(
+            var, probs = 0.75, na.rm = TRUE
+        ), 3),
+        "]"
+    )
+}
+
+
 ## geometric mean ##############################################################
 #' geometric mean
 #'
