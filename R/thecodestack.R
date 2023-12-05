@@ -638,15 +638,15 @@ Table.one <- function(Table_one.analysis_data,
 ## number of total and event ###################################################
 #' Title
 #'
-#' @param fpn.exposure
 #' @param fpn.event
+#' @param fpn.exposure
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fpn <- function(fpn.exposure,
-                fpn.event,
+fpn <- function(fpn.event,
+                fpn.exposure,
                 fpn.test = FALSE){
     if (length(unique(fpn.event)) == 2) {
         if (fpn.test) {
