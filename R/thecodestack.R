@@ -19,6 +19,7 @@ round_function <- function(data, n){
     return(data_sign * data / 10 ^ n)
 }
 
+## IQR #########################################################################
 #' Title IQR
 #'
 #' @param var
@@ -44,6 +45,28 @@ fiqr <- function(var) {
     )
 }
 
+
+## copy paste ##################################################################
+#' Title copy paste
+#'
+#' @param fcopy.var
+#'
+#' @return
+#' @export
+#'
+#' @examples fiqr(dt$age)
+fcopy <- function(fcopy.var) {
+write.table(fcopy.var,
+            paste0("clipboard-",
+                   formatC(100*100,
+                           format = "f",
+                           digits = 0)),
+            sep       = "\t",
+            row.names = FALSE,
+            col.names = FALSE,
+            dec       = "."
+)
+}
 
 ## geometric mean ##############################################################
 #' geometric mean
@@ -1101,6 +1124,54 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                 dec       = "."
     )
 }
+#' Title
+#'
+#' @param fcph.data
+#' @param fcph.model
+#' @param fcph.n
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fcph <- function(fcph.data, fcph.model, fcph.n){
+cox_model <- cph(fcph.model,
+    ,
+    x = TRUE,
+    y = TRUE,
+    data = fcph.data
+)
+summary(cox_model)
+cox.model_results <- exp(cbind(HRs = coef(cox_model),
+                               confint(cox_model)))
+cox.round_results <- round_function(cox.model_results,2)
+cox.table <- data.table(
+    Exposures = row.names(cox.round_results),
+    HRs       = paste(
+        sprintf("%.2f", cox.round_results[, 1]),
+        " (",
+        sprintf("%.2f", cox.round_results[, 2]),
+        "-",
+        sprintf("%.2f", cox.round_results[, 3]),
+        ")",
+        sep = ""
+    )
+)
+print(cox_model)
+print(cox.table)
+cox.print <- cox.table[(nrow(cox.table) - fcph.n + 1):nrow(cox.table), c("HRs")]
+write.table(cox.print,
+            paste0("clipboard-",
+                   formatC(100*100,
+                           format = "f",
+                           digits = 0)),
+            sep       = "\t",
+            row.names = FALSE,
+            col.names = FALSE,
+            dec       = "."
+)
+}
+
 
 #' Title
 #'
