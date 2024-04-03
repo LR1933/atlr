@@ -165,8 +165,8 @@ fs <- function(fs.varibale,fs.group = NA){
 ## linear regression ###########################################################
 #' Title
 #'
-#' @param fl.outcome
 #' @param fl.exposure
+#' @param fl.outcome
 #'
 #' @return
 #' @export
@@ -181,7 +181,6 @@ fl <- function(fl.exposure, fl.outcome) {
         xlab = fl.exposure.label,
         ylab = fl.outcome.label
     )
-
     fl.lm <- lm(fl.outcome ~ fl.exposure)
     fl.predictions <- predict(fl.lm)
     fl.equation <-
@@ -210,69 +209,62 @@ fl <- function(fl.exposure, fl.outcome) {
 ## linear check ################################################################
 #' Title
 #'
-#' @param fsp.y
-#' @param fsp.x
+#' @param fsp.exposure
+#' @param fsp.outcome
 #'
 #' @return
 #' @export
 #'
 #' @examples fsp(iris$Sepal.Length, iris$Petal.Width)
-fsp <- function(fsp.y, fsp.x) {
-    if (!is.numeric(fsp.y) || !is.numeric(fsp.x)) {
+fsp <- function(fsp.exposure, fsp.outcome) {
+    if (!is.numeric(fsp.exposure) || !is.numeric(fsp.outcome)) {
         stop("Inputed values must be numeric.")
     }
-
-    fsp.ymissing <- sum(is.na(fsp.y))
-    fsp.xmissing <- sum(is.na(fsp.x))
-
-
-    fsp.data <- data.frame(eval(fsp.x), eval(fsp.y))
+    fsp.xmissing <- sum(is.na(fsp.exposure))
+    fsp.ymissing <- sum(is.na(fsp.outcome))
+    fsp.data <- data.frame(eval(fsp.exposure), eval(fsp.outcome))
     fsp.data <- fsp.data[complete.cases(fsp.data),]
-    colnames(fsp.data) <- c("fsp.data.x",
-                            "fsp.data.y")
-
-    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.x)))
-    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
-
-    if (length(unique(fsp.data$fsp.data.y)) > 2) {
-        fsp.fit1 <- ols(fsp.data$fsp.data.y ~ fsp.data$fsp.data.x)
+    colnames(fsp.data) <- c("fsp.data.exposure",
+                            "fsp.data.outcome")
+    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.exposure)))
+    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.outcome)))
+    if (length(unique(fsp.data$fsp.data.outcome)) > 2) {
+        fsp.fitlinear <-
+            ols(fsp.data$fsp.data.outcome ~ fsp.data$fsp.data.exposure)
         fsp.fit3 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 3))
+            ols(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 3))
         fsp.fit4 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 4))
+            ols(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 4))
         fsp.fit5 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 5))
-
-        fsp.data$linear <- predict(fsp.fit1)
+            ols(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 5))
+        fsp.data$linear <- predict(fsp.fitlinear)
         fsp.data$rcs3   <- predict(fsp.fit3)
         fsp.data$rcs4   <- predict(fsp.fit4)
         fsp.data$rcs5   <- predict(fsp.fit5)
     } else {
-        fsp.fit1 <- lrm(fsp.data$fsp.data.y ~ fsp.data$fsp.data.x)
+        fsp.fitlinear <-
+            lrm(fsp.data$fsp.data.outcome ~ fsp.data$fsp.data.exposure)
         fsp.fit3 <-
-            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 3))
+            lrm(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 3))
         fsp.fit4 <-
-            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 4))
+            lrm(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 4))
         fsp.fit5 <-
-            lrm(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.x, 5))
-
-        fsp.data$linear <- predict(fsp.fit1, type = "lp")
+            lrm(fsp.data$fsp.data.outcome ~ rcs(fsp.data$fsp.data.exposure, 5))
+        fsp.data$linear <- predict(fsp.fitlinear, type = "lp")
         fsp.data$rcs3   <- predict(fsp.fit3, type = "lp")
         fsp.data$rcs4   <- predict(fsp.fit4, type = "lp")
         fsp.data$rcs5   <- predict(fsp.fit5, type = "lp")
     }
-
     fsp.gather <- gather(fsp.data,
                          key   = "model",
                          value = "value",
                          c("linear", "rcs3", "rcs4", "rcs5"))
-
     fsp.plot <- ggplot(fsp.gather,
-                       aes_string(x = "fsp.data.x",
-                                  y = "fsp.data.y")) +
+                       aes_string(x = "fsp.data.exposure",
+                                  y = "fsp.data.outcome")) +
         geom_point() +
         geom_line(aes(
-            x = fsp.data.x,
+            x = fsp.data.exposure,
             y = value,
             linetype = model,
             colour = model
@@ -280,15 +272,15 @@ fsp <- function(fsp.y, fsp.x) {
         linewidth = 1.0) +
         scale_color_manual(values = c(
             "linear" = "black",
-            "rcs3" = "red",
+            "rcs3" = "green",
             "rcs4" = "red",
-            "rcs5" = "red"
+            "rcs5" = "blue"
         )) +
         scale_linetype_manual(values = c(
             "linear" = "solid",
-            "rcs3" = "solid",
+            "rcs3" = "dashed",
             "rcs4" = "dashed",
-            "rcs5" = "dotted"
+            "rcs5" = "dashed"
         )) +
         labs(
             x = as.character(substitute(fsp.xname)),
@@ -326,43 +318,40 @@ fsp <- function(fsp.y, fsp.x) {
         )
     print(fsp.plot)
 
-
-    if (length(unique(fsp.data$fsp.data.y)) > 2) {
+    if (length(unique(fsp.data$fsp.data.outcome)) > 2) {
         cat(
             "\n",
-            paste("The number of missing values in y: ", fsp.ymissing),
+            paste("Number of missing values in", fsp.xname, ": ", fsp.xmissing),
             "\n",
-            paste("The number of missing values in x: ", fsp.xmissing),
+            paste("Number of missing values in", fsp.yname, ": ", fsp.ymissing),
             "\n",
             "\n",
-
             paste0("y = ",
-                   round(coef(fsp.fit1)[1], 2),
+                   round(coef(fsp.fitlinear)[1], 2),
                    " + ",
-                   round(coef(fsp.fit1)[2], 2),
+                   round(coef(fsp.fitlinear)[2], 2),
                    "x"),
             "\n",
             paste(
                 "R square for linear model: ",
-                round_function(fsp.fit1$stats["R2"], 3),
+                round_function(fsp.fitlinear$stats["R2"], 3),
                 sep = ""
             ),
             "\n",
             paste("Mean absolute error: ",
                   round_function(mean(
-                      abs(fsp.data$fsp.data.y -
+                      abs(fsp.data$fsp.data.outcome -
                               fsp.data$linear)
                   ), 3),
                   sep = ""),
             "\n",
             paste(
                 "Root mean square wrror: ",
-                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                round_function(sqrt(mean((fsp.data$fsp.data.outcome -
                                               fsp.data$linear) ^ 2
                 )), 3),
                 sep = ""
             ),
-
             "\n",
             "\n",
             paste(
@@ -373,14 +362,14 @@ fsp <- function(fsp.y, fsp.x) {
             "\n",
             paste("Mean absolute error: ",
                   round_function(mean(
-                      abs(fsp.data$fsp.data.y -
+                      abs(fsp.data$fsp.data.outcome -
                               fsp.data$rcs3)
                   ), 3),
                   sep = ""),
             "\n",
             paste(
                 "Root mean square wrror: ",
-                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                round_function(sqrt(mean((fsp.data$fsp.data.outcome -
                                               fsp.data$rcs3) ^ 2
                 )), 3),
                 sep = ""
@@ -396,19 +385,18 @@ fsp <- function(fsp.y, fsp.x) {
             "\n",
             paste("Mean absolute error: ",
                   round_function(mean(
-                      abs(fsp.data$fsp.data.y -
+                      abs(fsp.data$fsp.data.outcome -
                               fsp.data$rcs4)
                   ), 3),
                   sep = ""),
             "\n",
             paste(
                 "Root mean square wrror: ",
-                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                round_function(sqrt(mean((fsp.data$fsp.data.outcome -
                                               fsp.data$rcs4) ^ 2
                 )), 3),
                 sep = ""
             ),
-
             "\n",
             "\n",
             paste(
@@ -419,14 +407,14 @@ fsp <- function(fsp.y, fsp.x) {
             "\n",
             paste("Mean absolute error: ",
                   round_function(mean(
-                      abs(fsp.data$fsp.data.y -
+                      abs(fsp.data$fsp.data.outcome -
                               fsp.data$rcs5)
                   ), 3),
                   sep = ""),
             "\n",
             paste(
                 "Root mean square wrror: ",
-                round_function(sqrt(mean((fsp.data$fsp.data.y -
+                round_function(sqrt(mean((fsp.data$fsp.data.outcome -
                                               fsp.data$rcs5) ^ 2
                 )), 3),
                 sep = ""
@@ -435,15 +423,14 @@ fsp <- function(fsp.y, fsp.x) {
     } else {
         cat(
             "\n",
-            paste("The number of missing values in y: ", fsp.ymissing),
+            paste("Number of missing values in", fsp.xname, ": ", fsp.xmissing),
             "\n",
-            paste("The number of missing values in x: ", fsp.xmissing),
+            paste("Number of missing values in", fsp.yname, ": ", fsp.ymissing),
             "\n",
             "\n",
-
             paste(
                 "Pseudo R square for linear model: ",
-                round_function(fsp.fit1$stats["R2"], 3),
+                round_function(fsp.fitlinear$stats["R2"], 3),
                 sep = ""
             ),
             "\n",
@@ -468,38 +455,35 @@ fsp <- function(fsp.y, fsp.x) {
     }
 }
 
-## Categorical  check ##########################################################
+## Categorical check using box-and-whisker plot ################################
 #' Title
 #'
-#' @param fbp.y
-#' @param fbp.x
+#' @param fbp.exposure
+#' @param fbp.outcome
 #'
 #' @return
 #' @export
 #'
-#' @examples
-fbp <- function(fbp.y, fbp.x) {
-    fsp.data <- data.frame(eval(fbp.x), eval(fbp.y))
-    fbp.xname <- gsub(".*\\$", "", deparse(substitute(fbp.x)))
-    fbp.yname <- gsub(".*\\$", "", deparse(substitute(fbp.y)))
-
-    if (any(is.na(fbp.y))) {
-        stop("y cannot contain missing values")
+#' @examples fbp(round(iris$Petal.Length,0), iris$Sepal.Length)
+fbp <- function(fbp.exposure, fbp.outcome) {
+    fsp.data <- data.frame(eval(fbp.exposure), eval(fbp.outcome))
+    fbp.xname <- gsub(".*\\$", "", deparse(substitute(fbp.exposure)))
+    fbp.yname <- gsub(".*\\$", "", deparse(substitute(fbp.outcome)))
+    if (any(is.na(fbp.outcome))) {
+        stop(fbp.yname, " cannot contain missing values")
     }
-    if (any(is.na(fbp.x))) {
-        stop("x cannot contain missing values")
+    if (any(is.na(fbp.exposure))) {
+        stop(fbp.xname, " cannot contain missing values")
     }
-
-    if (!is.numeric(fbp.y)) {
-        stop("y must be a numeric variable")
+    if (!is.numeric(fbp.outcome)) {
+        stop(fbp.yname, " must be a numeric variable")
     }
-    if ((!is.numeric(fbp.x) | !is.character(fbp.x)) &&
-        length(unique(fbp.x)) > 10) {
-        stop("x must beless than 10 unique values")
+    if ((!is.numeric(fbp.exposure) | !is.character(fbp.exposure)) &&
+        length(unique(fbp.exposure)) > 10) {
+        stop(fbp.xname, " must beless than 10 unique values")
     }
-
     fbp.plot <-
-        ggplot(fsp.data, aes(x = factor(fbp.x), y = fbp.y)) +
+        ggplot(fsp.data, aes(x = factor(fbp.exposure), y = fbp.outcome)) +
         coord_cartesian() +
         geom_boxplot(
             outlier.colour = "red",
@@ -536,7 +520,7 @@ fbp <- function(fbp.y, fbp.x) {
             axis.title.y = element_text(size = 10, colour = "black"),
             axis.text.y  = element_text(size = 10, colour = "black"),
         )
-    print(fs(fbp.y, fbp.x))
+    print(fs(fbp.outcome, fbp.exposure))
     print(fbp.plot)
 }
 
@@ -549,7 +533,7 @@ fbp <- function(fbp.y, fbp.x) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples fdv(iris$Sepal.Length,3)
 fdv <- function(fdv.variable,fdv.n){
     fdv.dummy <- cut(fdv.variable,
                      quantile(fdv.variable,
@@ -562,7 +546,7 @@ fdv <- function(fdv.variable,fdv.n){
     return(fdv.dummy)
 }
 
-## update Japanese .calender ###################################################
+## update Japanese calender ####################################################
 #' Title
 #'
 #' @param J.calendar
@@ -570,27 +554,29 @@ fdv <- function(fdv.variable,fdv.n){
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples update.J.cal(c("平 5", "令 1.12.12"))
 update.J.cal <- function(J.calendar) {
-    cat("Supports a conversion range between 大正1年(1912) and 令和50年(2068)")
+    cat("Supports a conversion range between 大正1年(1912) and 令和50年(2068)",
+        "\n")
+    J.calendar <- gsub(" ", "", J.calendar)
     for (i in 1:15) {
-        old_val <- paste0("大", i, "\\.")
-        new_val <- paste0(1911 + i, "\\.")
+        old_val <- paste0("大", i)
+        new_val <- paste0(1911 + i)
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
     for (i in 1:64) {
-        old_val <- paste0("昭", i, "\\.")
-        new_val <- paste0(1925 + i, "\\.")
+        old_val <- paste0("昭", i)
+        new_val <- paste0(1925 + i)
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
     for (i in 1:31) {
-        old_val <- paste0("平", i, "\\.")
-        new_val <- paste0(1988 + i, "\\.")
+        old_val <- paste0("平", i)
+        new_val <- paste0(1988 + i)
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
     for (i in 1:50) {
-        old_val <- paste0("令", i, "\\.")
-        new_val <- paste0(2018 + i, "\\.")
+        old_val <- paste0("令", i)
+        new_val <- paste0(2018 + i)
         J.calendar <- gsub(old_val, new_val, J.calendar)
     }
     return(J.calendar)
@@ -673,9 +659,7 @@ Table.one <- function(Table_one.analysis_data,
 #' @export
 #'
 #' @examples
-fpn <- function(fpn.event,
-                fpn.exposure,
-                fpn.test = FALSE){
+fpn <- function(fpn.event, fpn.exposure, fpn.test = FALSE){
     if (length(unique(fpn.event)) == 2) {
         if (fpn.test) {
             fpn.crosstable <- gmodels::CrossTable(
@@ -794,33 +778,23 @@ fglm <- function(fglm.data,
                  fglm.model,
                  fglm.n = 1,
                  fglm.t = FALSE) {
-    fglm.ddist <- datadist(fglm.data)
-    options(datadist = fglm.ddist)
-
     fglm.fit <- ols(formula = fglm.model,
                     data = environment(fglm.data))
-
-    options(datadist = NULL)
     fglm.fit$coefficients
     summary(fglm.fit)
-
     fglm.table <- data.table(Vars = rownames(summary(fglm.fit)),
                              Beta = fglm.fit$coefficients[-1])
-
     fglm.clip <-
         fglm.table[(nrow(fglm.table) - fglm.n + 1):nrow(fglm.table)]
-
     if (fglm.t) {
         fglm.clip.output <- format(round(t(fglm.clip[, 2]), 3), nsmall = 3)
     } else{
         fglm.clip.output <- format(round(fglm.clip[, 2], 3),  nsmall = 3)
     }
-
     print(fglm.fit)
     cat("\n")
     cat("\n")
     print(fglm.clip)
-
     write.table(
         fglm.clip.output,
         paste0("clipboard-",
@@ -904,14 +878,8 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
 #'
 #' @examples
 flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
-    flrm.ddist <- datadist(flrm.data)
-    options(datadist = flrm.ddist)
-
     flrm.fit <- lrm(formula = flrm.model,
                     data    = environment(flrm.data))
-
-    options(datadist = NULL)
-
     flrm.table <- as.data.frame(summary(flrm.fit))
     flrm.summary <- format(round(exp(flrm.table[seq(1,
                                                     nrow(flrm.table),
@@ -919,7 +887,6 @@ flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
                                                 c(4, 6:7)]), # ORs locations
                                  2),
                            nsmall = 2)
-
     flrm.table <- data.table(
         Vars  = rownames(flrm.summary),
         ORs   = paste0(flrm.summary[,1],
@@ -929,21 +896,17 @@ flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
                        flrm.summary[,3],
                        ")")
     )
-
     flrm.clip <- flrm.table[(nrow(flrm.table) - flrm.n + 1):nrow(flrm.table)]
-
     if (flrm.t) {
         flrm.clip.output <- t(flrm.clip[,2])
     } else{
         flrm.clip.output <- flrm.clip[,2]
     }
-
     print(flrm.fit, coefs = 0)
     cat("\n")
     cat("\n")
     print(summary(flrm.fit))
     print(flrm.clip)
-
     write.table(flrm.clip.output,
                 paste0("clipboard-",
                        formatC(100*100,
@@ -957,82 +920,12 @@ flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
     )
 }
 
-## optimism adjusted AUC #######################################################
-# http://cainarchaeology.weebly.com/r-function-for-optimism-adjusted-auc.html
-# https://academic.oup.com/aje/article/180/3/318/2739260
-# !!note: the Dependent Variable must be stored in the first column to the left
-#' Title
-#'
-#' @param data
-#' @param fit
-#' @param B
-#'
-#' @return
-#' @export
-#'
-#' @examples
-optimism_adjusted_AUC <- function(data, fit, B){
-    library(kimisc)
-    library(pROC)
-    fit.model <- fit
-    data$pred.prob <- fitted(fit.model)
-    auc.app <- roc(as.numeric(unlist(data[,1])),
-                   data$pred.prob,
-                   data = data)$auc # require 'pROC'
-    auc.boot <- vector(mode = "numeric", length = B)
-    auc.orig <- vector(mode = "numeric", length = B)
-    o <- vector(mode = "numeric", length = B)
-    auc.adj.individual <- vector(mode = "numeric", length = B)
-    for (i in 1:B) {
-        boot.sample <- sample.rows(data,
-                                   nrow(data),
-                                   replace = TRUE) # require 'kimisc'
-        fit.boot <- glm(formula(fit.model),
-                        data   = boot.sample,
-                        family = "binomial")
-        boot.sample$pred.prob <- fitted(fit.boot)
-        auc.boot[i] <- roc(as.numeric(unlist(boot.sample[,1])),
-                           boot.sample$pred.prob,
-                           data = boot.sample)$auc
-        data$pred.prob.back <- predict.glm(fit.boot,
-                                           newdata = data,
-                                           type    = "response")
-        auc.orig[i] <- roc(as.numeric(unlist(data[,1])),
-                           data$pred.prob.back,
-                           data = data)$auc
-        o[i] <- auc.boot[i] - auc.orig[i]
-        auc.adj.individual[i] = auc.app - o[i]
-    }
-    auc.adj <- auc.app - (sum(o)/B)
-    boxplot(auc.boot, auc.orig, names = c("auc.boot", "auc.orig"))
-    title(main    = paste("Optimism-adjusted AUC",
-                          "\nn of bootstrap resamples:",
-                          B),
-          sub     = paste("auc.app (blue line)=",
-                          round(auc.app, digits = 4),
-                          "\nadj.auc (red line)=",
-                          round(auc.adj, digits = 4)),
-          cex.sub = 0.8)
-    abline(h   = auc.app,
-           col = "blue",
-           lty = 2)
-    abline(h   = auc.adj,
-           col = "red",
-           lty = 3)
-    The95CI  <- data.table(
-        optimism_adjusted_AUC = auc.adj,
-        under_95_CI           = quantile(auc.adj.individual, probs = 0.025),
-        upper_95_CI           = quantile(auc.adj.individual, probs = 0.925))
-    rownames(The95CI) <- ""
-    return(The95CI)
-}
-
 ## cox model ###################################################################
 # The proportional hazards assumption is checked using statistical tests and
 # -graphical diagnostics based on the scaled Schoenfeld residuals.
 # In principle, the Schoenfeld residuals are independent of time. Plot with a
 # -non-random pattern against time is evidence of violation of the assumption.
-#' Title
+#' Proportional hazards assumption
 #'
 #' @param phdata
 #' @param phmodel
@@ -1050,7 +943,7 @@ PH_assumption <- function(phdata,phmodel){
     rm(phdata, envir = .GlobalEnv)
 }
 
-#' Title
+#' Cox model
 #'
 #' @param HRs.analysis_data
 #' @param HRs.model
@@ -1103,7 +996,8 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                 dec       = "."
     )
 }
-#' Title
+
+#' Cox model with rcs
 #'
 #' @param fcph.data
 #' @param fcph.model
@@ -1152,7 +1046,7 @@ write.table(cox.print,
 }
 
 
-#' Title
+#' Kaplan-Meier plot
 #'
 #' @param KMplot.analysis_data
 #' @param KMplot.model
@@ -1181,7 +1075,7 @@ KMplot <- function(KMplot.analysis_data, KMplot.model){
 }
 
 
-#' Title
+#'Fine.Gray model for competing risk
 #'
 #' @param FG.time
 #' @param FG.status
@@ -1239,133 +1133,6 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
                 col.names = FALSE,
                 dec       = "."
     )
-}
-
-## modified_poisson_model ######################################################
-#' Title
-#'
-#' @param PRs.analysis_data
-#' @param PRs.model
-#' @param PRs.n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-PRs <- function(PRs.analysis_data,PRs.model,PRs.n){
-    modified_poisson_model <- glm(PRs.model,
-                                  data   = PRs.analysis_data,
-                                  family = poisson(link = "log")
-    )
-    PRs.observation <- paste("Number","of","observation", "is",
-                             length(residuals(modified_poisson_model)))
-    PRs.model_results <- coeftest(modified_poisson_model,
-                                  vcov = sandwic
-    )
-    PRs.round_model_results <- round_function(
-        exp(
-            cbind(PR  = PRs.model_results[,1],
-                  LCI = PRs.model_results[,1] + qnorm(0.05/2)*PRs.model_results[,2],
-                  UCI = PRs.model_results[,1] - qnorm(0.05/2)*PRs.model_results[,2])
-        ),2
-    )
-    PRs.table <- data.table(Exposures = row.names(PRs.round_model_results),
-                            PRs       = paste(PRs.round_model_results[,1],
-                                              " (",
-                                              PRs.round_model_results[,2],
-                                              "-",
-                                              PRs.round_model_results[,3],
-                                              ")",
-                                              sep = ""))
-    PRs.horizontal_table <- as.data.table(t(PRs.table))
-    PRs.horizontal_table_print <- PRs.horizontal_table[
-        row.names(PRs.horizontal_table) == "PRs",
-        (ncol(PRs.horizontal_table) - PRs.n + 1):ncol(PRs.horizontal_table)
-    ]
-    print(summary(modified_poisson_model))
-    print(PRs.table)
-    print(PRs.horizontal_table[,
-                               (ncol(PRs.horizontal_table) - PRs.n + 1):ncol(PRs.horizontal_table)
-    ]
-    )
-    write.table(PRs.horizontal_table_print,
-                paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
-                ),
-                sep       = "\t",
-                row.names = FALSE,
-                col.names = FALSE,
-                dec       = "."
-    )
-    print(noquote(PRs.observation))
-}
-
-## generalized estimating equation model ######################################
-#' Title
-#'
-#' @param GEE.analysis_data
-#' @param GEE.model
-#' @param GEE.order_variable
-#' @param GEE.n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-GEE <- function(GEE.analysis_data,
-                GEE.model,GEE.order_variable,
-                GEE.n){
-    GEE.analysis_data$ID_GEE <- GEE.order_variable
-    GEE.analysis_data <- arrange(GEE.analysis_data,ID_GEE)
-    GEE_model <- GEEglm(GEE.model,
-                        id     = ID_GEE,
-                        data   = GEE.analysis_data,
-                        corstr = 'exchangeable',
-                        family = 'gaussian')
-    GEE.observation <- paste("Number","of","observation","is",
-                             length(residuals(GEE_model)))
-    GEE.model_results <- coef(summary(GEE_model))
-    GEE.coefficient <- with(
-        as.data.table(GEE.model_results),
-        cbind(coefficient = as.numeric(Estimate),
-              lwr = as.numeric(Estimate - qnorm((1 + 0.95)/2)*Std.err),
-              upr = as.numeric(Estimate + qnorm((1 + 0.95)/2)*Std.err))
-    )
-    GEE.round_coefficient <- round_function(GEE.coefficient,2)
-    GEE.table <- data.table(Exposures   = row.names(GEE.model_results),
-                            coefficient = as.numeric(GEE.round_coefficient[, 1]),
-                            The_95_CI   = paste(" ",GEE.round_coefficient[, 2],
-                                                "-",GEE.round_coefficient[, 3],
-                                                sep = ""),
-                            P_value     = round_function(GEE.model_results[, 4],
-                                                         3)
-    )
-    GEE.table$P_value[GEE.table$P_value <= 0.001] <- "<0.001"
-    GEE.table$P_value[
-        GEE.table$P_value >  0.001 & GEE.table$P_value <= 0.01
-    ] <- "<0.01"
-    GEE.print_table <- GEE.table[
-        as.numeric(nrow(GEE.table) - GEE.n + 1):nrow(GEE.table),
-    ]
-    print(GEE_model)
-    summary(GEE_model)
-    print(GEE.model_results)
-    print(GEE.coefficient)
-    print(GEE.print_table)
-    write.table(GEE.print_table[,2:4],
-                paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
-                ),
-                sep       = "\t",
-                row.names = FALSE,
-                col.names = FALSE,
-                dec       = "."
-    )
-    print(noquote(GEE.observation))
 }
 
 ##【Build a theme】#############################################################
