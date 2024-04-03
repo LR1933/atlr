@@ -12,7 +12,6 @@ options(scipen = 8,digits = 8)
 grDevices::windowsFonts(Times = grDevices::windowsFont("Times New Roman"))
 options(max.print = 10000)
 
-
 cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
 cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
 cat("\033[36mType the following code to install MCV.\033[0m\n")
