@@ -49,9 +49,11 @@
   z-index: -1;
 }
 
+/* 80 byte margin */
 .ace_print-margin {
-  width: 2px;
-  box-shadow: 1px 0 0 0 rgb(125, 125, 125) inset;
+  border-left: 0.5px dashed rgb(255, 255, 255);
+  right: 0;
+  background: rgb(0, 0, 0);
 }
 
 .ace_editor,

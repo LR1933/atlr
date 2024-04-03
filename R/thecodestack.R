@@ -1,4 +1,4 @@
-## 2023/07/20 version ##########################################################
+## 2024/04/01 version ##########################################################
 
 ##【Data cleansing】############################################################
 ## rounding ####################################################################
@@ -10,7 +10,7 @@
 #' @return
 #' @export
 #'
-#' @examples round_function(dt$age,2)
+#' @examples round_function(iris$Sepal.Length,0)
 round_function <- function(data, n){
     data_sign  <- sign(data)
     data       <- abs(data) * 10 ^ n
@@ -18,33 +18,6 @@ round_function <- function(data, n){
     data       <- trunc(data)
     return(data_sign * data / 10 ^ n)
 }
-
-## IQR #########################################################################
-#' Title IQR
-#'
-#' @param var
-#'
-#' @return
-#' @export
-#'
-#' @examples fiqr(dt$age)
-fiqr <- function(var) {
-    paste0(
-        round_function(quantile(
-            var, probs = 0.50, na.rm = TRUE
-        ), 3),
-        " [",
-        round_function(quantile(
-            var, probs = 0.25, na.rm = TRUE
-        ), 3),
-        ", ",
-        round_function(quantile(
-            var, probs = 0.75, na.rm = TRUE
-        ), 3),
-        "]"
-    )
-}
-
 
 ## copy paste ##################################################################
 #' Title copy paste
@@ -54,7 +27,7 @@ fiqr <- function(var) {
 #' @return
 #' @export
 #'
-#' @examples fiqr(dt$age)
+#' @examples fcopy(iris$Sepal.Length)
 fcopy <- function(fcopy.var) {
 write.table(fcopy.var,
             paste0("clipboard-",
@@ -76,7 +49,7 @@ write.table(fcopy.var,
 #' @return geometric mean
 #' @export
 #'
-#' @examples geo_mean(dt$crp)
+#' @examples geo_mean(iris$Sepal.Length)
 # expmean(log(x))) # geometric mean
 # exp(sum(log(x)/length(x)) # geometric mean
 # exp(mean(log(x)))
@@ -91,11 +64,10 @@ geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
 #' @return
 #' @export
 #'
-#' @examples fvar(dt$age)
+#' @examples fvar(iris$Sepal.Length)
 fvar <- function(fvar.variable, fvar.bar = TRUE) {
     fvar.variable.label <-
         sub(".*\\$", "", deparse(substitute(fvar.variable)))
-
         if (nlevels(as.factor(fvar.variable)) <= 10) {
             print(
                 epiDisplay::tab1(
@@ -166,7 +138,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples  fs(iris$Sepal.Length, iris$Species)
 fs <- function(fs.varibale,fs.group = NA){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
@@ -199,9 +171,16 @@ fs <- function(fs.varibale,fs.group = NA){
 #' @return
 #' @export
 #'
-#' @examples
-fl <- function(fl.outcome,fl.exposure) {
-    plot(fl.exposure, fl.outcome)
+#' @examples fl(iris$Sepal.Length, iris$Petal.Width)
+fl <- function(fl.exposure, fl.outcome) {
+    fl.exposure.label <- sub(".*\\$", "", deparse(substitute(fl.exposure)))
+    fl.outcome.label <- sub(".*\\$", "", deparse(substitute(fl.outcome)))
+    plot(
+        fl.exposure,
+        fl.outcome,
+        xlab = fl.exposure.label,
+        ylab = fl.outcome.label
+    )
 
     fl.lm <- lm(fl.outcome ~ fl.exposure)
     fl.predictions <- predict(fl.lm)
@@ -219,7 +198,7 @@ fl <- function(fl.outcome,fl.exposure) {
         paste("Mean absolute error: ",
               round_function(mean(abs(fl.outcome - fl.predictions)),3)),
         "\n",
-        paste("Root mean square wrror: ",
+        paste("Root mean square error: ",
               round_function(sqrt(mean((fl.outcome - fl.predictions) ^ 2)),3)),
         "\n",
         paste("R square: ",
@@ -237,7 +216,7 @@ fl <- function(fl.outcome,fl.exposure) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples fsp(iris$Sepal.Length, iris$Petal.Width)
 fsp <- function(fsp.y, fsp.x) {
     if (!is.numeric(fsp.y) || !is.numeric(fsp.x)) {
         stop("Inputed values must be numeric.")
@@ -817,31 +796,31 @@ fglm <- function(fglm.data,
                  fglm.t = FALSE) {
     fglm.ddist <- datadist(fglm.data)
     options(datadist = fglm.ddist)
-    
+
     fglm.fit <- ols(formula = fglm.model,
                     data = environment(fglm.data))
-    
+
     options(datadist = NULL)
     fglm.fit$coefficients
     summary(fglm.fit)
-    
+
     fglm.table <- data.table(Vars = rownames(summary(fglm.fit)),
                              Beta = fglm.fit$coefficients[-1])
-    
+
     fglm.clip <-
         fglm.table[(nrow(fglm.table) - fglm.n + 1):nrow(fglm.table)]
-    
+
     if (fglm.t) {
         fglm.clip.output <- format(round(t(fglm.clip[, 2]), 3), nsmall = 3)
     } else{
         fglm.clip.output <- format(round(fglm.clip[, 2], 3),  nsmall = 3)
     }
-    
+
     print(fglm.fit)
     cat("\n")
     cat("\n")
     print(fglm.clip)
-    
+
     write.table(
         fglm.clip.output,
         paste0("clipboard-",
@@ -927,20 +906,20 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
 flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
     flrm.ddist <- datadist(flrm.data)
     options(datadist = flrm.ddist)
-    
+
     flrm.fit <- lrm(formula = flrm.model,
                     data    = environment(flrm.data))
-    
+
     options(datadist = NULL)
-    
+
     flrm.table <- as.data.frame(summary(flrm.fit))
     flrm.summary <- format(round(exp(flrm.table[seq(1,
                                                     nrow(flrm.table),
                                                     by = 2),
                                                 c(4, 6:7)]), # ORs locations
-                                 2), 
-                           nsmall = 2) 
-    
+                                 2),
+                           nsmall = 2)
+
     flrm.table <- data.table(
         Vars  = rownames(flrm.summary),
         ORs   = paste0(flrm.summary[,1],
@@ -950,21 +929,21 @@ flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
                        flrm.summary[,3],
                        ")")
     )
-    
+
     flrm.clip <- flrm.table[(nrow(flrm.table) - flrm.n + 1):nrow(flrm.table)]
-    
+
     if (flrm.t) {
         flrm.clip.output <- t(flrm.clip[,2])
     } else{
         flrm.clip.output <- flrm.clip[,2]
     }
-    
+
     print(flrm.fit, coefs = 0)
     cat("\n")
     cat("\n")
     print(summary(flrm.fit))
     print(flrm.clip)
-    
+
     write.table(flrm.clip.output,
                 paste0("clipboard-",
                        formatC(100*100,
