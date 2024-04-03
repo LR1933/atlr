@@ -1140,7 +1140,7 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
 #' @export
 mytheme <- function() {
     theme_file <-
-        system.file("themes/dark.rstheme", package = "R.atelier")
+        system.file("themes/dark.rstheme", package = "atelier")
     add_theme(theme_file)
     create_theme("Dark")
 }
