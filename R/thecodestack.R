@@ -1145,7 +1145,6 @@ mytheme <- function() {
     create_theme("Dark")
 }
 
-
 ##【Build a package】###########################################################
 # devtools::load_all() # loading the latest package for testing
 # ctrl+alt+shift+R
