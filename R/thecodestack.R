@@ -600,9 +600,9 @@ update.J.cal <- function(J.calendar) {
 Table.one <- function(Table_one.analysis_data,
                       Table_one.all_varibales,
                       Table_one.categorical_variables,
+                      Table_one.nonnormal_variables = NULL,
                       Table_one.group = NA,
                       Table_one.test = FALSE,
-                      Table_one.nonnormal_variables = NULL,
                       Table_one.contDigits = 2
 ) {
     if (is.na(Table_one.group)) {
