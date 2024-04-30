@@ -610,7 +610,7 @@ Table.one <- function(Table_one.analysis_data,
             tableone::CreateTableOne(
                 data          = Table_one.analysis_data,
                 vars          = Table_one.all_varibales,
-                Test          = Table_one.test,
+                test          = Table_one.test,
                 factorVars    = Table_one.categorical_variables
             ),
             contDigits    = Table_one.contDigits,
@@ -627,7 +627,7 @@ Table.one <- function(Table_one.analysis_data,
                 data          = Table_one.analysis_data,
                 vars          = Table_one.all_varibales,
                 strata        = Table_one.group,
-                Test          = Table_one.test,
+                test          = Table_one.test,
                 factorVars    = Table_one.categorical_variables
             ),
             contDigits    = Table_one.contDigits,
