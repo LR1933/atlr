@@ -602,8 +602,8 @@ Table.one <- function(Table_one.analysis_data,
                       Table_one.categorical_variables,
                       Table_one.nonnormal_variables = NULL,
                       Table_one.group = NA,
-                      Table_one.test = FALSE,
-                      Table_one.contDigits = 2
+                      Table_one.contDigits = 2,
+                      Table_one.test = FALSE
 ) {
     if (is.na(Table_one.group)) {
         Table_one.print <- print(
