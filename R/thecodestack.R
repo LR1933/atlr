@@ -1152,3 +1152,10 @@ mytheme <- function() {
 # devtools::load_all() # loading the latest package for testing
 # ctrl+alt+shift+R
 devtools::build()
+
+##【Output messages】###########################################################
+cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
+cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
+cat("\033[36mType the following code to install atelier.\033[0m\n")
+cat("  devtools::install_github('lijiaqi-github/R.atelier')\n")
+
