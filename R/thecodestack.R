@@ -1154,8 +1154,14 @@ mytheme <- function() {
 devtools::build()
 
 ##【Output messages】###########################################################
-cat("\033[36mType the following code to edit Rprofile.site.\033[0m\n")
-cat("  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n")
-cat("\033[36mType the following code to install atelier.\033[0m\n")
-cat("  devtools::install_github('lijiaqi-github/R.atelier')\n")
+fmessgaes <- paste0(
+  "\033[36mType the following code to edit Rprofile.site:\033[0m\n",
+  "  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n\n",
+  "\033[36mType the following code to install atelier:\033[0m\n",
+  "  devtools::install_github('lijiaqi-github/R.atelier')\n\n",
+  "\033[36mUpdate packages:\033[0m\n",
+  "  update.packages(ask = FALSE, dependencies = TRUE)\n"
+)
+
+
 
