@@ -162,50 +162,6 @@ fs <- function(fs.varibale,fs.group = NA){
     return(fs)
 }
 
-## linear regression ###########################################################
-#' Title
-#'
-#' @param fl.exposure
-#' @param fl.outcome
-#'
-#' @return
-#' @export
-#'
-#' @examples fl(iris$Sepal.Length, iris$Petal.Width)
-fl <- function(fl.exposure, fl.outcome) {
-    fl.exposure.label <- sub(".*\\$", "", deparse(substitute(fl.exposure)))
-    fl.outcome.label <- sub(".*\\$", "", deparse(substitute(fl.outcome)))
-    plot(
-        fl.exposure,
-        fl.outcome,
-        xlab = fl.exposure.label,
-        ylab = fl.outcome.label
-    )
-    fl.lm <- lm(fl.outcome ~ fl.exposure)
-    fl.predictions <- predict(fl.lm)
-    fl.equation <-
-        paste0("y = ",
-               round(coef(fl.lm)[1], 2),
-               " + ",
-               round(coef(fl.lm)[2], 2),
-               "x")
-    abline(fl.lm, col = "black")
-    cat(
-        "\n",
-        paste("Regression equation: ", fl.equation),
-        "\n",
-        paste("Mean absolute error: ",
-              round_function(mean(abs(fl.outcome - fl.predictions)),3)),
-        "\n",
-        paste("Root mean square error: ",
-              round_function(sqrt(mean((fl.outcome - fl.predictions) ^ 2)),3)),
-        "\n",
-        paste("R square: ",
-              round_function(summary(fl.lm)$r.squared,3)),
-        sep = ""
-    )
-}
-
 ## linear check ################################################################
 #' Title
 #'
