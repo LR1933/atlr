@@ -648,11 +648,11 @@ fpn <- function(fpn.event, fpn.exposure, fpn.test = FALSE){
         fpn.print_horizontal_occurtable <- as.data.frame(t(fpn.occurtable))
         fpn.print_horizontal_occurtable$total =
             rowSums(fpn.print_horizontal_occurtable)
-        print(fpn.print_horizontal_occurtable[c("No.of_participants",
-                                                "No.of_cases"), ])
+        print(fpn.print_horizontal_occurtable[c("No.of participants",
+                                                "No.of cases"), ])
         write.table(
-            fpn.horizontal_occurtable[c("No.of_participants",
-                                        "No.of_cases"), ],
+            fpn.horizontal_occurtable[c("No.of participants",
+                                        "No.of cases"), ],
             paste0("clipboard-",
                    formatC(
                        100 * 100,
@@ -690,35 +690,35 @@ fpn <- function(fpn.event, fpn.exposure, fpn.test = FALSE){
 ## number of person-years ######################################################
 #' Title
 #'
+#' @param fpy.pyear
 #' @param fpy.exposure
-#' @param fpy.event
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fpy <- function(fpy.exposure, fpy.event) {
-    fpy <- as.data.table(fs(fpy.exposure, fpy.event))
-    setnames(fpy,"Sum","Peason-years")
-    setorder(fpy,"Groups")
-    fpy.table <- as.data.frame(t(fpy[,c(1,3)]))
-    colnames(fpy.table) <- NULL
-    fpy.table$total <- as.numeric(as.data.table(fs(fpy.exposure))[,3])
-    fpy.table[1,]$total <- ""
-    print(fpy.table)
-    write.table(
-        round_function(t(fpy[, 3]), 0),
-        paste0("clipboard-",
-               formatC(
-                   100 * 100,
-                   format = "f",
-                   digits = 0
-               )),
-        sep       = "\t",
-        row.names = FALSE,
-        col.names = FALSE,
-        dec       = "."
-    )
+fpy <- function(fpy.pyear, fpy.exposure) {
+  fpy <- as.data.table(fs(fpy.pyear, fpy.exposure))
+  setnames(fpy,"Sum","Peason-years")
+  setorder(fpy,"Groups")
+  fpy.table <- as.data.frame(t(fpy[,c(1,3)]))
+  colnames(fpy.table) <- NULL
+  fpy.table$total <- as.numeric(as.data.table(fs(fpy.pyear))[,3])
+  fpy.table[1,]$total <- ""
+  print(fpy.table)
+  write.table(
+    round_function(t(fpy[, 3]), 0),
+    paste0("clipboard-",
+           formatC(
+             100 * 100,
+             format = "f",
+             digits = 0
+           )),
+    sep       = "\t",
+    row.names = FALSE,
+    col.names = FALSE,
+    dec       = "."
+  )
 }
 
 ## linear model ################################################################
@@ -1092,16 +1092,6 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
                 col.names = FALSE,
                 dec       = "."
     )
-}
-
-##【Build a theme】#############################################################
-#' @importFrom rstudioapi create_theme add_theme
-#' @export
-mytheme <- function() {
-    theme_file <-
-        system.file("themes/dark.rstheme", package = "atelier")
-    add_theme(theme_file)
-    create_theme("Dark")
 }
 
 ##【Build a package】###########################################################
