@@ -1094,6 +1094,194 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
     )
 }
 
+## modified summary ############################################################
+#' Titlemodified summary
+#'
+#' @param frr.fit
+#' @param frr.var 
+#' @param n
+#'
+#' @return
+#' @export
+#'
+#' @examples 
+frr <- function(frr.fit, frr.var = NULL, n = 2) {
+
+  if (is.null(frr.fit)) {stop("Error: Fit cannot be NULL.")}
+  
+  if ("summary.rms" %in% class(frr.fit) && "matrix" %in% class(frr.fit)) {
+    
+    frr.table1 <- as.data.frame(frr.fit[seq(2, nrow(frr.fit), by = 2), -c(8)])
+    
+    frr.table1$"Risk Ratio (95% CI)" <- paste0(
+      format(round(frr.table1$Effect, n), nsmall = n),
+      " (",
+      format(round(frr.table1$"Lower 0.95", n), nsmall = n),
+      " - ",
+      format(round(frr.table1$"Upper 0.95", n), nsmall = n),
+      ")"
+    )
+    frr.table1 <- frr.table1[, -c(4:7)]
+    
+    frr.table2 <- as.data.frame(frr.fit[seq(1, nrow(frr.fit), by = 2), -c(8)])
+    frr.table2$Rowname <- rownames(frr.table2)
+    
+    frr.table12 <- merge(frr.table2,
+                         frr.table1,
+                         all.x = T,
+                         by = c("Low", "High", "Diff."))
+    frr.table12 <- frr.table12[match(rownames(frr.table2), frr.table12$Rowname), ]
+    frr.table12 <- frr.table12[, c(
+      "Rowname",
+      "Low",
+      "High",
+      "Diff.",
+      "Effect",
+      "S.E.",
+      "Lower 0.95",
+      "Upper 0.95",
+      "Risk Ratio (95% CI)"
+    )]
+    
+    rownames(frr.table12) <- NULL
+    
+    if (is.character(frr.var)) {
+      if (grepl(" ", frr.var)) {
+        stop("Error: Invalid varibale input. Including space.")
+      } else {
+        frr.coef <- grep(paste0("^", frr.var), frr.table12$Rowname, value = TRUE) # "^" is for same initial wordss
+        
+        if (length(frr.coef) > 1) {
+          stop("Error: Multiple matches found: ",
+               paste(frr.coef, collapse = ", "))
+        } else if (length(frr.coef) == 0) {
+          stop("Error: Invalid varibale input. Non-existent variable.")
+        }
+      }
+      
+      frr.table <- frr.table12[frr.table12$Rowname == frr.coef, ]
+      
+      print(frr.table)
+      fcopy(frr.table$`Risk Ratio (95% CI)`)
+    }
+    
+    if (is.numeric(frr.var)) {
+      if (max(frr.var) > length(frr.table12$Rowname)) {
+        stop("Error: Invalid varibale input. Exceeding upper limit.")
+      }
+      if (min(frr.var) <= 0) {
+        stop("Error: Invalid varibale input. Exceeding lower limit.")
+      }
+      
+      frr.indices <- seq(min(frr.var), max(frr.var))
+      frr.table <- frr.table12[frr.indices, ]
+      
+      print(frr.table)
+      fcopy(frr.table$`Risk Ratio (95% CI)`)
+    }
+    
+    if (is.null(frr.var)) {
+      frr.table <- frr.table12
+      print(frr.table)
+      fcopy(frr.table$`Risk Ratio (95% CI)`)
+    }
+  } else {
+    if (is.character(frr.var)) {
+      if (grepl(" ", frr.var)) {
+        stop("Error: Invalid varibale input. Including space.")
+      } else {
+        frr.coefficients <- coef(frr.fit)
+        frr.coef <- grep(paste0("^", frr.var), names(frr.coefficients), value = TRUE) # "^" is for same initial wordss
+        
+        if (length(frr.coef) > 1) {
+          stop("Error: Multiple matches found: ",
+               paste(frr.coef, collapse = ", "))
+        } else if (length(frr.coef) == 0) {
+          stop("Error: Invalid varibale input. Non-existent variable.")
+        }
+      }
+      
+      frr.Standard_error <- sqrt(diag(vcov(frr.fit)))
+      frr.se <- grep(paste0("^", frr.var), names(frr.Standard_error), value = TRUE)
+      
+      frr.ncoef <- as.numeric(frr.coefficients[frr.coef])
+      frr.nse <- as.numeric(frr.Standard_error[frr.se])
+      
+      frr.rr <- paste0(round(exp(frr.ncoef), n),
+                       " (",
+                       round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
+                       " - ",
+                       round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
+                       ")")
+      
+      frr.table <- data.frame(
+        Rowname                = names(frr.coefficients[frr.coef]),
+        Effect                 = frr.ncoef,
+        S.E.                   = frr.nse,
+        "Risk Ratio (95% CI)" = frr.rr
+      )
+      names(frr.table) <- c("Rowname", "Effect", "S.E.", "Risk Ratio (95% CI)")
+      print(frr.table)
+      fcopy(frr.rr)
+    }
+    
+    if (is.numeric(frr.var)) {
+      if (max(frr.var) > length(names(coef(frr.fit)))) {
+        stop("Error: Invalid varibale input. Exceeding upper limit.")
+      }
+      if (min(frr.var) <= 0) {
+        stop("Error: Invalid varibale input. Exceeding lower limit.")
+      }
+      
+      frr.ncoef <- as.numeric(coef(frr.fit))
+      frr.nse <- as.numeric(sqrt(diag(vcov(frr.fit))))
+      
+      frr.rr <- paste0(round(exp(frr.ncoef), n),
+                       " (",
+                       round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
+                       " - ",
+                       round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
+                       ")")
+      
+      frr.table <- data.frame(
+        Rowname                = names(coef(frr.fit)),
+        Effect                 = frr.ncoef,
+        S.E.                   = frr.nse,
+        "Risk Ratio (95% CI)" = frr.rr
+      )
+      names(frr.table) <- c("Rowname", "Effect", "S.E.", "Risk Ratio (95% CI)")
+      
+      frr.indices <- seq(min(frr.var), max(frr.var))
+      
+      print(frr.table[frr.indices, ])
+      fcopy(frr.table[frr.indices, ][, -c(1:3)])
+    }
+    if (is.null(frr.var)) {
+      frr.ncoef <- as.numeric(coef(frr.fit))
+      frr.nse <- as.numeric(sqrt(diag(vcov(frr.fit))))
+      
+      frr.rr <- paste0(round(exp(frr.ncoef), n),
+                       " (",
+                       round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
+                       " - ",
+                       round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
+                       ")")
+      
+      frr.table <- data.frame(
+        Rowname                = names(coef(frr.fit)),
+        Effect                 = frr.ncoef,
+        S.E.                   = frr.nse,
+        "Risk Ratio (95% CI)" = frr.rr
+      )
+      names(frr.table) <- c("Rowname", "Effect", "S.E.", "Risk Ratio (95% CI)")
+      print(frr.table)
+      fcopy(frr.table)
+    }
+  }
+}
+
+
+
 ##【Build a package】###########################################################
 # devtools::load_all() # loading the latest package for testing
 # ctrl+alt+shift+R
