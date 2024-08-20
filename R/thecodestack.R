@@ -1112,7 +1112,11 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
   }
     
   if (is.null(frr.fit)) {stop("Error: Fit cannot be NULL.")}
-  
+
+  if (is.symbol(substitute(frr.var))) {
+    frr.var <- as.character(substitute(frr.var))
+  }
+    
   if ("summary.rms" %in% class(frr.fit) && "matrix" %in% class(frr.fit)) {
     
     frr.table1 <- as.data.frame(frr.fit[seq(2, nrow(frr.fit), by = 2), -c(8)])
