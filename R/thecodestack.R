@@ -1107,6 +1107,10 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
 #' @examples 
 frr <- function(frr.fit, frr.var = NULL, n = 2) {
 
+  if ("rms" %in% class(frr.fit) && any((grepl("\\'", names(coef(frr.fit)))))) {
+    stop("Error: Including nonlinear varibale. Using frr(summary()).")
+  }
+    
   if (is.null(frr.fit)) {stop("Error: Fit cannot be NULL.")}
   
   if ("summary.rms" %in% class(frr.fit) && "matrix" %in% class(frr.fit)) {
@@ -1279,7 +1283,6 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
     }
   }
 }
-
 
 
 ##【Build a package】###########################################################
