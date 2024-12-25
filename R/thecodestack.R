@@ -618,73 +618,51 @@ Table.one <- function(Table_one.analysis_data,
 #' @export
 #'
 #' @examples
-fpn <- function(fpn.event, fpn.exposure, fpn.test = FALSE){
-    if (length(unique(fpn.event)) == 2) {
-        if (fpn.test) {
-            fpn.crosstable <- gmodels::CrossTable(
-                fpn.event,
-                fpn.exposure,
-                fisher = TRUE,
-                prop.t = FALSE,
-                prop.r = FALSE,
-                prop.c = FALSE
-            )
-        } else {
-            fpn.crosstable <- gmodels::CrossTable(
-                fpn.event,
-                fpn.exposure,
-                fisher = FALSE,
-                prop.t = FALSE,
-                prop.r = FALSE,
-                prop.c = FALSE
-            )
-        }
-        fpn.occurtable <- data.frame(No.of_non_cases = fpn.crosstable$t[1, ],
-                                     No.of_cases     = fpn.crosstable$t[2, ])
-        ##!! not use data.table because data.table has no row title !!##
-        fpn.occurtable$No.of_participants <- rowSums(fpn.occurtable)
-        fpn.occurtable <- fpn.occurtable[, -1]
-        fpn.horizontal_occurtable <- as.data.frame(t(fpn.occurtable))
-        fpn.print_horizontal_occurtable <- as.data.frame(t(fpn.occurtable))
-        fpn.print_horizontal_occurtable$total =
-            rowSums(fpn.print_horizontal_occurtable)
-        print(fpn.print_horizontal_occurtable[c("No.of participants",
-                                                "No.of cases"), ])
-        write.table(
-            fpn.horizontal_occurtable[c("No.of participants",
-                                        "No.of cases"), ],
-            paste0("clipboard-",
-                   formatC(
-                       100 * 100,
-                       format = "f",
-                       digits = 0
-                   )),
-            sep       = "\t",
-            row.names = FALSE,
-            col.names = FALSE,
-            dec       = "."
-        )
+function(fpn.event, fpn.exposure, fpn.test = FALSE){
+  if (length(unique(fpn.event)) == 2) {
+    if (fpn.test) {
+      fpn.crosstable <- gmodels::CrossTable(
+        fpn.event,
+        fpn.exposure,
+        fisher = TRUE,
+        prop.t = FALSE,
+        prop.r = FALSE,
+        prop.c = FALSE
+      )
     } else {
-        if (fpn.test) {
-            fpn.crosstable <- gmodels::CrossTable(
-                fpn.event,
-                fpn.exposure,
-                fisher = TRUE,
-                prop.t = FALSE,
-                prop.r = FALSE,
-                prop.c = FALSE
-            )
-        } else {
-            fpn.crosstable <- gmodels::CrossTable(
-                fpn.event,
-                fpn.exposure,
-                fisher = FALSE,
-                prop.t = FALSE,
-                prop.r = FALSE,
-                prop.c = FALSE
-            )
-        }
+      fpn.crosstable <- gmodels::CrossTable(
+        fpn.event,
+        fpn.exposure,
+        fisher = FALSE,
+        prop.t = FALSE,
+        prop.r = FALSE,
+        prop.c = FALSE
+      )
     }
+  }
+    fpn.occurtable <- data.table("No.of participants" = fpn.crosstable$t[1, ],
+                                 "No.of cases"        = fpn.crosstable$t[2, ])
+    fpn.occurtable$"No.of participants" <- rowSums(fpn.occurtable)
+    fpn.horizontal_occurtable <- transpose( fpn.occurtable, 
+                                            keep.names = "RowNames")
+    fpn.horizontal_occurtable$total =
+      rowSums(fpn.horizontal_occurtable[, -1, with = FALSE])
+    print(fpn.horizontal_occurtable[RowNames %in% c("No.of participants", 
+                                                    "No.of cases")])
+    write.table(
+      fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
+                                                "No.of cases"), ],
+      paste0("clipboard-",
+             formatC(
+               100 * 100,
+               format = "f",
+               digits = 0
+             )),
+      sep       = "\t",
+      row.names = FALSE,
+      col.names = FALSE,
+      dec       = "."
+    )
 }
 
 ## number of person-years ######################################################
