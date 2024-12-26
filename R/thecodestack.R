@@ -616,7 +616,7 @@ Table.one <- function(Table_one.analysis_data,
 #' @export
 #'
 #' @examples
-function(fpn.event, fpn.exposure, fpn.test = FALSE){
+fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
   if (length(unique(fpn.event)) == 2) {
     if (fpn.test) {
       fpn.crosstable <- gmodels::CrossTable(
