@@ -645,8 +645,8 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
                                             keep.names = "RowNames")
     fpn.horizontal_occurtable$total =
       rowSums(fpn.horizontal_occurtable[, -1, with = FALSE])
-    print(fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
-                                                    "No.of cases")])
+    print(as.data.frame(fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
+                                                                  "No.of cases")]))
     write.table(
       fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
                                                 "No.of cases"), ],
@@ -685,7 +685,7 @@ fpy <- function(fpy.pyear, fpy.exposure) {
   fpy.table[] <- lapply(fpy.table, function(x) round(x, 0))
   fpy.table$"" <- c("Peason years")
   setcolorder(fpy.table, c("", setdiff(names(fpy.table), "")))
-  print(fpy.table)
+  print(as.data.frame(fpy.table))
   write.table(
     t(unlist(fpy.table[1,], use.names = FALSE)),
     paste0("clipboard-",
@@ -1288,7 +1288,7 @@ fmessgaes <- paste0(
   "  update.packages(ask = FALSE, dependencies = TRUE)\n"
 　"  installed.packages()[, c("Package", "Version", "Built")]"
 　"  packageVersion("rms")"
-    
+
 )
 
 
