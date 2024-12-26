@@ -679,13 +679,17 @@ fpy <- function(fpy.pyear, fpy.exposure) {
   fpy <- as.data.table(fs(fpy.pyear, fpy.exposure))
   setnames(fpy,"Sum","Peason-years")
   setorder(fpy,"Groups")
-  fpy.table <- as.data.frame(t(fpy[,c(1,3)]))
-  colnames(fpy.table) <- NULL
-  fpy.table$total <- as.numeric(as.data.table(fs(fpy.pyear))[,3])
-  fpy.table[1,]$total <- ""
+  fpy.table <- as.data.table(t(fpy[,c(1,3)]))
+  colnames(fpy.table) <- as.character(unlist(fpy.table[1,], use.names = FALSE))
+  fpy.table <- fpy.table[2]
+  fpy.table[, total := c(sum(as.numeric(fpy[[3]])))]
+  fpy.table[] <- lapply(fpy.table, as.numeric) 
+  fpy.table[] <- lapply(fpy.table, function(x) round(x, 0))
+  fpy.table$"" <- c("Peason years")
+  setcolorder(fpy.table, c("", setdiff(names(fpy.table), "")))
   print(fpy.table)
   write.table(
-    round_function(t(fpy[, 3]), 0),
+    t(unlist(fpy.table[1,], use.names = FALSE)),
     paste0("clipboard-",
            formatC(
              100 * 100,
