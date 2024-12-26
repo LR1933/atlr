@@ -1286,6 +1286,9 @@ fmessgaes <- paste0(
   "  devtools::install_github('lijiaqi-github/atlr')\n\n",
   "\033[36mUpdate packages:\033[0m\n",
   "  update.packages(ask = FALSE, dependencies = TRUE)\n"
+　"  installed.packages()[, c("Package", "Version", "Built")]"
+　"  packageVersion("rms")"
+    
 )
 
 
