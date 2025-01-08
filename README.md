@@ -1,9 +1,9 @@
-## Type the following code to edit Rprofile.site:
+## Edit Rprofile.site:
 
 ```
 file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))
 ```
-## Type the following code to install atlr:
+## Install atlr:
 ```
 devtools::install_github('lijiaqi-github/atlr')
 ```
