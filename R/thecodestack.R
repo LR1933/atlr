@@ -1278,18 +1278,4 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
 # ctrl+alt+shift+R
 devtools::build()
 
-##【Output messages】###########################################################
-fmessgaes <- paste0(
-  "\033[36mType the following code to edit Rprofile.site:\033[0m\n",
-  "  file.edit(file.path(Sys.getenv('R_HOME'), 'etc', 'Rprofile.site'))\n\n",
-  "\033[36mType the following code to install atlr:\033[0m\n",
-  "  devtools::install_github('lijiaqi-github/atlr')\n\n",
-  "\033[36mUpdate packages:\033[0m\n",
-  "  update.packages(ask = FALSE, dependencies = TRUE)\n"
-　"  installed.packages()[, c("Package", "Version", "Built")]"
-　"  packageVersion("rms")"
-
-)
-
-
 
