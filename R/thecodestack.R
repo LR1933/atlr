@@ -139,7 +139,8 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 #' @export
 #'
 #' @examples  fs(iris$Sepal.Length, iris$Species)
-fs <- function(fs.varibale,fs.group = NA, fs.html = TRUE){
+#' @examples  fs(iris$Sepal.Length)
+fs <- function(fs.varibale, fs.group = NA, fs.html = TRUE){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
     fs.table  <- fsd[, .(N       = NROW(var),
@@ -158,7 +159,10 @@ fs <- function(fs.varibale,fs.group = NA, fs.html = TRUE){
                          ),
                      keyby = cat]
     fs.table <- as.data.table(fs.table)
-    setnames(fs.table, 1, "Groups")
+    if (any(is.na(fs.group))) {fs.table <- fs.table[, -1, with = FALSE]}
+    if (any(!is.na(fs.group))) {
+        setnames(fs.table, 1,  sub(".*\\$", "", deparse(substitute(fs.group))))
+        }
     if (fs.html) {
         print(DT::datatable(
             fs.table,
@@ -167,8 +171,11 @@ fs <- function(fs.varibale,fs.group = NA, fs.html = TRUE){
                 searching = FALSE,
                 info = FALSE
             ),
+            rownames = FALSE,
             class = "display compact"
         ))
+        cat(paste0("Varibale: ", sub(".*\\$", "", deparse(substitute(fs.varibale))),"\n"))
+        cat("\n")
     }
     return(fs.table)
 }
@@ -635,7 +642,7 @@ Table.one <- function(Table_one.analysis_data,
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples fpn(sample(0:1, 150, replace = TRUE), iris$Species)
 fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
   if (length(unique(fpn.event)) == 2) {
     if (fpn.test) {
@@ -663,20 +670,24 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
     fpn.occurtable$"No.of participants" <- rowSums(fpn.occurtable)
     fpn.h_occurtable <- transpose(fpn.occurtable,
                                  keep.names = "RowNames")
-    setnames(fpn.h_occurtable, gsub("^V", "", names(fpn.h_occurtable)))
+    colnames(fpn.h_occurtable) <-  c("RowNames", as.character(unique(fpn.exposure)))
     fpn.h_occurtable$Total = rowSums(fpn.h_occurtable[, -1, with = FALSE])
     fpn.return <- as.data.frame(fpn.h_occurtable[RowNames %in% c("No.of participants",
                                                                  "No.of cases")])
+    cat(paste0("Event   : ", sub(".*\\$", "", deparse(substitute(fpn.event))),"\n"))
+    cat(paste0("Exposure: ", sub(".*\\$", "", deparse(substitute(fpn.exposure))),"\n"))
     fcopy(fpn.return)
-    DT::datatable(
+    setnames(fpn.return, "RowNames", sub(".*\\$", "", deparse(substitute(fpn.exposure))))
+    print(DT::datatable(
         fpn.return,
         options = list(
             paging    = FALSE,
             searching = FALSE,
             info      = FALSE
         ),
+        rownames = FALSE,
         class   = "display compact"
-    )
+    ))
 }
 
 ## number of person-years ######################################################
@@ -688,36 +699,39 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples fpy(iris$Sepal.Length, iris$Species)
 fpy <- function(fpy.pyear, fpy.exposure) {
-  fpy <- as.data.frame(fs(fpy.pyear, fpy.exposure, FALSE))
-  setnames(fpy,"Sum","Peason-years")
-  setorder(fpy,"Groups")
+  fpy <- as.data.table(fs(fpy.pyear, fpy.exposure, FALSE))
   fpy.table <- as.data.table(t(fpy[,c(1,3)]))
   colnames(fpy.table) <- as.character(unlist(fpy.table[1,], use.names = FALSE))
   fpy.table <- fpy.table[2]
   fpy.table[, Total := c(sum(as.numeric(fpy[[3]])))]
   fpy.table[] <- lapply(fpy.table, as.numeric)
   fpy.table[] <- lapply(fpy.table, function(x) round(x, 2))
-  fpy.table$"" <- c("Person-years")
+  fpy.table$"" <- paste0("Person-years for ", sub(".*\\$", "", deparse(substitute(fpy.pyear))))
   setcolorder(fpy.table, c("", setdiff(names(fpy.table), "")))
-  setnames(fpy.table, names(fpy.table)[1]," ")
+  setnames(fpy.table, names(fpy.table)[1],sub(".*\\$", "", deparse(substitute(fpy.exposure))))
+  fpy.table <- as.data.frame(fpy.table)
+  rownames(fpy.table) <- c("")
+  cat(paste0(" Exposure: ", sub(".*\\$", "", deparse(substitute(fpy.exposure))),"\n"))
   print(as.data.frame(fpy.table))
   fpy.table[] <- lapply(fpy.table, function(x)
       if (is.numeric(x))
           round(x, 0)
       else
           x)
-  fcopy(t(unlist(fpy.table[1,], use.names = FALSE)))
-  DT::datatable(
+  print(DT::datatable(
       fpy.table,
       options = list(
           paging    = FALSE,
           searching = FALSE,
           info      = FALSE
       ),
+      rownames = FALSE,
       class   = "display compact"
-  )
+  ))
+  colnames(fpy.table)[1] <- "Person-years"
+  fcopy(t(unlist(fpy.table[1,], use.names = FALSE)))
 }
 
 ## linear model ################################################################
