@@ -1,7 +1,7 @@
 Package: atlr
 Type: A private R package
 Title: A package of miscellaneous R functions
-Version: 2024.12.31
+Version: 2025.01.08
 Author: Lijiaqi
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
