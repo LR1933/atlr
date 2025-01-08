@@ -10,7 +10,7 @@ devtools::install_github('lijiaqi-github/atlr')
 
 ## Update packages:
 ```
-pdate.packages(ask = FALSE, dependencies = TRUE)
+Update.packages(ask = FALSE, dependencies = TRUE)
 ```
 
 ## Check packages:
