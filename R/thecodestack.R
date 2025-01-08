@@ -139,7 +139,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 #' @export
 #'
 #' @examples  fs(iris$Sepal.Length, iris$Species)
-fs <- function(fs.varibale,fs.group = NA){
+fs <- function(fs.varibale,fs.group = NA, fs.html = TRUE){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
     fs  <- fsd[, .(N       = NROW(var),
@@ -159,6 +159,17 @@ fs <- function(fs.varibale,fs.group = NA){
     keyby = cat]
     fs <- as.data.table(fs)
     setnames(fs, 1, "Groups")
+    if (fs.html) {
+        DT::datatable(
+            fs,
+            options = list(
+                paging    = FALSE,
+                searching = FALSE,
+                info      = FALSE
+            ),
+            class   = "display compact"
+        )
+    }
     return(fs)
 }
 
@@ -603,6 +614,15 @@ Table.one <- function(Table_one.analysis_data,
                 row.names = TRUE,
                 col.names = FALSE,
                 dec       = "."
+                )
+    DT::datatable(
+        Table_one.print,
+        options = list(
+            paging    = FALSE,
+            searching = FALSE,
+            info      = FALSE
+        ),
+        class   = "display compact"
     )
 }
 
@@ -641,25 +661,21 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
     fpn.occurtable <- data.table("No.of participants"  = fpn.crosstable$t[1, ],
                                  "No.of cases"         = fpn.crosstable$t[2, ])
     fpn.occurtable$"No.of participants" <- rowSums(fpn.occurtable)
-    fpn.horizontal_occurtable <- transpose(fpn.occurtable,
-                                            keep.names = "RowNames")
-    fpn.horizontal_occurtable$total =
-      rowSums(fpn.horizontal_occurtable[, -1, with = FALSE])
-    print(as.data.frame(fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
-                                                                  "No.of cases")]))
-    write.table(
-      fpn.horizontal_occurtable[RowNames %in% c("No.of participants",
-                                                "No.of cases"), ],
-      paste0("clipboard-",
-             formatC(
-               100 * 100,
-               format = "f",
-               digits = 0
-             )),
-      sep       = "\t",
-      row.names = FALSE,
-      col.names = FALSE,
-      dec       = "."
+    fpn.h_occurtable <- transpose(fpn.occurtable,
+                                 keep.names = "RowNames")
+    setnames(fpn.h_occurtable, gsub("^V", "", names(fpn.h_occurtable)))
+    fpn.h_occurtable$Total = rowSums(fpn.h_occurtable[, -1, with = FALSE])
+    fpn.return <- as.data.frame(fpn.h_occurtable[RowNames %in% c("No.of participants",
+                                                                 "No.of cases")])
+    fcopy(fpn.return)
+    DT::datatable(
+        fpn.return,
+        options = list(
+            paging    = FALSE,
+            searching = FALSE,
+            info      = FALSE
+        ),
+        class   = "display compact"
     )
 }
 
@@ -674,30 +690,33 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
 #'
 #' @examples
 fpy <- function(fpy.pyear, fpy.exposure) {
-  fpy <- as.data.table(fs(fpy.pyear, fpy.exposure))
+  fpy <- as.data.frame(fs(fpy.pyear, fpy.exposure, FALSE))
   setnames(fpy,"Sum","Peason-years")
   setorder(fpy,"Groups")
   fpy.table <- as.data.table(t(fpy[,c(1,3)]))
   colnames(fpy.table) <- as.character(unlist(fpy.table[1,], use.names = FALSE))
   fpy.table <- fpy.table[2]
-  fpy.table[, total := c(sum(as.numeric(fpy[[3]])))]
+  fpy.table[, Total := c(sum(as.numeric(fpy[[3]])))]
   fpy.table[] <- lapply(fpy.table, as.numeric)
-  fpy.table[] <- lapply(fpy.table, function(x) round(x, 0))
-  fpy.table$"" <- c("Peason years")
+  fpy.table[] <- lapply(fpy.table, function(x) round(x, 2))
+  fpy.table$"" <- c("Person-years")
   setcolorder(fpy.table, c("", setdiff(names(fpy.table), "")))
+  setnames(fpy.table, names(fpy.table)[1]," ")
   print(as.data.frame(fpy.table))
-  write.table(
-    t(unlist(fpy.table[1,], use.names = FALSE)),
-    paste0("clipboard-",
-           formatC(
-             100 * 100,
-             format = "f",
-             digits = 0
-           )),
-    sep       = "\t",
-    row.names = FALSE,
-    col.names = FALSE,
-    dec       = "."
+  fpy.table[] <- lapply(fpy.table, function(x)
+      if (is.numeric(x))
+          round(x, 0)
+      else
+          x)
+  fcopy(t(unlist(fpy.table[1,], use.names = FALSE)))
+  DT::datatable(
+      fpy.table,
+      options = list(
+          paging    = FALSE,
+          searching = FALSE,
+          info      = FALSE
+      ),
+      class   = "display compact"
   )
 }
 
