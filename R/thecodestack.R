@@ -142,35 +142,35 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 fs <- function(fs.varibale,fs.group = NA, fs.html = TRUE){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
-    fs  <- fsd[, .(N       = NROW(var),
-                   Sum     = round(sum(var,      na.rm = TRUE), 3),
-                   Mean    = round(mean(var,     na.rm = TRUE), 3),
-                   stdDev  = round(sd(var,       na.rm = TRUE), 3),
-                   Min     = round(min(var,      na.rm = TRUE), 3),
-                   Q25     = round(quantile(var, probs = 0.25,
-                                                 na.rm = TRUE), 3),
-                   Median  = round(median(var,   na.rm = TRUE), 3),
-                   Q75     = round(quantile(var, probs = 0.75,
-                                                 na.rm = TRUE), 3),
-                   Max     = round(max(var,      na.rm = TRUE), 3),
-                   length  = length(unique(var)),
-                   Missing = sum(is.na(var))
-    ),
-    keyby = cat]
-    fs <- as.data.table(fs)
-    setnames(fs, 1, "Groups")
+    fs.table  <- fsd[, .(N       = NROW(var),
+                         Sum     = round(sum(var,      na.rm = TRUE), 3),
+                         Mean    = round(mean(var,     na.rm = TRUE), 3),
+                         stdDev  = round(sd(var,       na.rm = TRUE), 3),
+                         Min     = round(min(var,      na.rm = TRUE), 3),
+                         Q25     = round(quantile(var, probs = 0.25,
+                                                       na.rm = TRUE), 3),
+                         Median  = round(median(var,   na.rm = TRUE), 3),
+                         Q75     = round(quantile(var, probs = 0.75,
+                                                       na.rm = TRUE), 3),
+                         Max     = round(max(var,      na.rm = TRUE), 3),
+                         length  = length(unique(var)),
+                         Missing = sum(is.na(var))
+                         ),
+                     keyby = cat]
+    fs.table <- as.data.table(fs.table)
+    setnames(fs.table, 1, "Groups")
     if (fs.html) {
-        DT::datatable(
-            fs,
+        print(DT::datatable(
+            fs.table,
             options = list(
-                paging    = FALSE,
+                paging = FALSE,
                 searching = FALSE,
-                info      = FALSE
+                info = FALSE
             ),
-            class   = "display compact"
-        )
+            class = "display compact"
+        ))
     }
-    return(fs)
+    return(fs.table)
 }
 
 ## linear check ################################################################
