@@ -6,7 +6,7 @@ Author: Lijiaqi
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
 License: no license
-Depends: tidyverse, DescTools, lubridate, tableone, data.table, DT, rms
+Depends: tidyverse, DescTools, lubridate, tableone, data.table, DT, htmltools, rms
 Encoding: UTF-8
 LazyData: true
 Theme: themes/dark.rstheme
