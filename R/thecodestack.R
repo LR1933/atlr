@@ -1,4 +1,4 @@
-## 2024/12/31 version ##########################################################
+## 2025/01/01 version ##########################################################
 
 ##【Data cleansing】############################################################
 ## rounding ####################################################################
@@ -78,7 +78,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
                     cex = 1,
                     cex.names = 1,
                     main = paste(
-                        "The frequency distribution plot of",
+                        "Frequency distribution for",
                         fvar.variable.label
                     ),
                     xlab = paste(fvar.variable.label, "values"),
@@ -97,7 +97,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
                     cex = 1,
                     cex.names = 1,
                     main = paste(
-                        "The frequency distribution plot of",
+                        "Frequency distribution for",
                         fvar.variable.label
                     ),
                     xlab = paste(fvar.variable.label, "values"),
@@ -109,14 +109,14 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
     cat(
         "\n",
         paste(
-            "The type/class of variable: ",
+            "Type/class of variable: ",
             typeof(fvar.variable),
             "/",
             class(fvar.variable)
         ),
         "\n",
         paste(
-            "The number of zero/missing/null/space-inclusive variables: ",
+            "No. of zero/missing/null/space-inclusive variables: ",
             sum(fvar.variable %in% c(0,"0"), na.rm = TRUE),
             "/",
             sum(is.na(fvar.variable)),
@@ -164,7 +164,7 @@ fs <- function(fs.varibale, fs.group = NA, fs.html = TRUE){
         setnames(fs.table, 1,  sub(".*\\$", "", deparse(substitute(fs.group))))
         }
     if (fs.html) {
-        print(DT::datatable(
+        print(htmltools::tagList(DT::datatable(
             fs.table,
             options = list(
                 paging = FALSE,
