@@ -138,6 +138,8 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 #' @return
 #' @export
 #'
+#'            fs.varibale <- iris$Sepal.Length
+#'            fs.group <- iris$Species
 #' @examples  fs(iris$Sepal.Length, iris$Species)
 #' @examples  fs(iris$Sepal.Length)
 fs <- function(fs.varibale, fs.group = NA, fs.html = TRUE){
@@ -164,18 +166,29 @@ fs <- function(fs.varibale, fs.group = NA, fs.html = TRUE){
         setnames(fs.table, 1,  sub(".*\\$", "", deparse(substitute(fs.group))))
         }
     if (fs.html) {
-        print(htmltools::tagList(DT::datatable(
-            fs.table,
-            options = list(
-                paging = FALSE,
-                searching = FALSE,
-                info = FALSE
-            ),
-            rownames = FALSE,
-            class = "display compact"
-        ))
-        cat(paste0("Varibale: ", sub(".*\\$", "", deparse(substitute(fs.varibale))),"\n"))
-        cat("\n")
+        print(DT::datatable(fs.table,
+                            options   = list(
+                            paging    = FALSE,
+                            searching = FALSE,
+                            info      = FALSE
+                            ),
+                            rownames  = FALSE,
+                            class     = "display compact",
+                            caption   = htmltools::tags$caption(
+                                style = "caption-side: bottom;
+                                         text-align: left;
+                                         color: black;
+                                         font-size: 14px;",
+                                         paste0("Varibale: ",
+                                         sub(".*\\$", "", deparse(substitute(fs.varibale))),
+                                         "\n")
+                                )
+                            )
+              )
+cat(paste0("Varibale: ",
+           sub(".*\\$", "", deparse(substitute(fs.varibale))),
+           "\n"))
+cat("\n")
     }
     return(fs.table)
 }
@@ -642,7 +655,10 @@ Table.one <- function(Table_one.analysis_data,
 #' @return
 #' @export
 #'
+#'           fpn.event <- sample(0:1, 150, replace = TRUE)
+#'           fpn.exposure <- iris$Species
 #' @examples fpn(sample(0:1, 150, replace = TRUE), iris$Species)
+
 fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
   if (length(unique(fpn.event)) == 2) {
     if (fpn.test) {
@@ -685,9 +701,20 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
             searching = FALSE,
             info      = FALSE
         ),
-        rownames = FALSE,
-        class   = "display compact"
-    ))
+        rownames      = FALSE,
+        class         = "display compact",
+        caption       = htmltools::tags$caption(
+            style     = "caption-side: bottom;
+                         text-align: left;
+                         color: black;
+                         font-size: 14px;",
+                         paste0("Event   : ",
+                         sub(".*\\$", "", deparse(substitute(fpn.event))),
+                         "\n"
+                         )
+            )
+        )
+    )
 }
 
 ## number of person-years ######################################################
@@ -699,7 +726,9 @@ fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
 #' @return
 #' @export
 #'
-#' @examples fpy(iris$Sepal.Length, iris$Species)
+#'            fpy.pyear <- iris$Sepal.Length
+#'            fpy.exposure <- iris$Species
+#' @examples  fpy(iris$Sepal.Length, iris$Species)
 fpy <- function(fpy.pyear, fpy.exposure) {
   fpy <- as.data.table(fs(fpy.pyear, fpy.exposure, FALSE))
   fpy.table <- as.data.table(t(fpy[,c(1,3)]))
@@ -713,7 +742,6 @@ fpy <- function(fpy.pyear, fpy.exposure) {
   setnames(fpy.table, names(fpy.table)[1],sub(".*\\$", "", deparse(substitute(fpy.exposure))))
   fpy.table <- as.data.frame(fpy.table)
   rownames(fpy.table) <- c("")
-  cat(paste0(" Exposure: ", sub(".*\\$", "", deparse(substitute(fpy.exposure))),"\n"))
   print(as.data.frame(fpy.table))
   fpy.table[] <- lapply(fpy.table, function(x)
       if (is.numeric(x))
@@ -727,10 +755,11 @@ fpy <- function(fpy.pyear, fpy.exposure) {
           searching = FALSE,
           info      = FALSE
       ),
-      rownames = FALSE,
-      class   = "display compact"
-  ))
-  colnames(fpy.table)[1] <- "Person-years"
+      rownames      = FALSE,
+      class         = "display compact"
+      )
+      )
+  fpy.table[1, 1] <- "Person-years"
   fcopy(t(unlist(fpy.table[1,], use.names = FALSE)))
 }
 
