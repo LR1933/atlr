@@ -1147,43 +1147,45 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
 #' @export
 #'
 #' @examples
-frr <- function(frr.fit, frr.var = NULL, n = 2) {
+frr <- function(frr.fit,
+                frr.var = NULL,
+                n = 2) {
+    Risk_ratio <- paste0(sub("^ ", "", rownames(frr.fit)[2]), " (95% CI)")
 
-    Risk_ratio <- paste0(sub("^ ", "", rownames(frr.fit)[2])," (95% CI)")
-
-    if ("rms" %in% class(frr.fit) && any((grepl("\\'", names(coef(frr.fit)))))) {
+    if ("rms" %in% class(frr.fit) &&
+        any((grepl("\\'", names(coef(
+            frr.fit
+        )))))) {
         stop("Error: Including nonlinear varibale. Using frr(summary()).")
     }
 
-    if (is.null(frr.fit)) {stop("Error: Fit cannot be NULL.")}
+    if (is.null(frr.fit)) {
+        stop("Error: Fit cannot be NULL.")
+    }
 
     if (is.symbol(substitute(frr.var))) {
         frr.var <- as.character(substitute(frr.var))
     }
 
-    if ("summary.rms" %in% class(frr.fit) && "matrix" %in% class(frr.fit)) {
-
-        frr.table1 <- as.data.frame(frr.fit[seq(2, nrow(frr.fit), by = 2), -c(8)])
-
+    if ("summary.rms" %in% class(frr.fit) &&
+        "matrix" %in% class(frr.fit)) {
+        frr.table1 <- as.data.frame(frr.fit[seq(1, nrow(frr.fit), by = 2), -c(8)])
         frr.table1$"Risk Ratio (95% CI)" <- paste0(
-            format(round(frr.table1$Effect, n), nsmall = n),
+            format(round(exp(
+                frr.table1$Effect
+            ), n), nsmall = n),
             " (",
-            format(round(frr.table1$"Lower 0.95", n), nsmall = n),
+            format(round(exp(
+                frr.table1$"Lower 0.95"
+            ), n), nsmall = n),
             " - ",
-            format(round(frr.table1$"Upper 0.95", n), nsmall = n),
+            format(round(exp(
+                frr.table1$"Upper 0.95"
+            ), n), nsmall = n),
             ")"
         )
-        frr.table1 <- frr.table1[, -c(4:7)]
-
-        frr.table2 <- as.data.frame(frr.fit[seq(1, nrow(frr.fit), by = 2), -c(8)])
-        frr.table2$Factor <- rownames(frr.table2)
-
-        frr.table12 <- merge(frr.table2,
-                             frr.table1,
-                             all.x = T,
-                             by = c("Low", "High", "Diff."))
-        frr.table12 <- frr.table12[match(rownames(frr.table2), frr.table12$Factor), ]
-        frr.table12 <- frr.table12[, c(
+        frr.table1$Factor <- rownames(frr.table2)
+        frr.table1 <- frr.table1[, c(
             "Factor",
             "Low",
             "High",
@@ -1194,6 +1196,7 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
             "Upper 0.95",
             "Risk Ratio (95% CI)"
         )]
+        frr.table12 <- as.data.table(frr.table1)
 
         if (is.character(frr.var)) {
             if (any(grepl(" ", frr.var))) {
@@ -1205,14 +1208,13 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
                     stop("Error: Invalid varibale input. Non-existent variable.")
                 }
             }
-
             frr.table <- frr.table12[grepl(paste(frr.var, collapse = "|"), frr.table12$Factor), ]
 
             colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)),]
+            frr.table <- frr.table[order(rownames(frr.table)), ]
             print(frr.table, row.names = FALSE)
-            fcopy(frr.table[,Risk_ratio])
-        }
+            fcopy(frr.table[, ..Risk_ratio])
+        }#end
 
         if (is.numeric(frr.var)) {
             if (max(frr.var) > length(frr.table12$Factor)) {
@@ -1226,19 +1228,20 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
             frr.table <- frr.table12[frr.indices, ]
 
             colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)),]
+            frr.table <- frr.table[order(rownames(frr.table)), ]
             print(frr.table, row.names = FALSE)
-            fcopy(frr.table[,Risk_ratio])
-        }
+            fcopy(frr.table[, ..Risk_ratio])
+        } #end
 
         if (is.null(frr.var)) {
             frr.table <- frr.table12
             colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)),]
+            frr.table <- frr.table[order(rownames(frr.table)), ]
             print(frr.table, row.names = FALSE)
-            fcopy(frr.table[,Risk_ratio])
+            fcopy(frr.table[, ..Risk_ratio])
         }
-    } else { # below is for frr.fit is a fit rather than summary
+    } else {
+        # below is for frr.fit is a fit rather than summary
         if (is.character(frr.var)) {
             if (any(grepl(" ", frr.var))) {
                 stop("Error: Invalid varibale input. Including space.")
@@ -1273,8 +1276,8 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
             names(frr.table) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
             colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
             print(frr.table, row.names = FALSE)
-            fcopy(frr.table[,Risk_ratio])
-        }
+            fcopy(frr.table[, ..Risk_ratio])
+        }#end
 
         if (is.numeric(frr.var)) {
             if (max(frr.var) > length(names(coef(frr.fit)))) {
@@ -1308,7 +1311,8 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
             print(frr.table[frr.indices, ], row.names = FALSE)
             fcopy(frr.table[frr.indices, ][, -c(1:3)])
 
-        }
+        }#end
+
         if (is.null(frr.var)) {
             frr.ncoef <- as.numeric(coef(frr.fit))
             frr.nse <- as.numeric(sqrt(diag(vcov(frr.fit))))
@@ -1329,7 +1333,7 @@ frr <- function(frr.fit, frr.var = NULL, n = 2) {
             names(frr.table) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
             colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
             print(frr.table, row.names = FALSE)
-            fcopy(frr.table[,Risk_ratio])
+            fcopy(frr.table[, ..Risk_ratio])
         }
     }
 }
