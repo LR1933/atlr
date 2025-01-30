@@ -1184,7 +1184,7 @@ frr <- function(frr.fit,
             ), n), nsmall = n),
             ")"
         )
-        frr.table1$Factor <- rownames(frr.table2)
+        frr.table1$Factor <- rownames(frr.table1)
         frr.table1 <- frr.table1[, c(
             "Factor",
             "Low",
