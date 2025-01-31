@@ -1262,23 +1262,22 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
                                "coxph" = "Hazard ratio (95% CI)"
                               )
         Risk_ratio <- model_classes[[class(fe.fit)[1]]]
-        if (grepl("logit", fe.fit$family$link)) { Risk_ratio <- "Odds ratio (95% CI)"}
+        if ("glm" %in% class(fe.fit)) && grepl("logit", fe.fit$family$link)) { Risk_ratio <- "Odds ratio (95% CI)"}
         fe.ncoef <- as.numeric(coef(fe.fit))
-        fe.nse <- as.numeric(sqrt(diag(vcov(fe.fit))))
         if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
             fe.rr <- paste0(format(round(exp(fe.ncoef), n), nsmall = n),
                              " (",
-                             format(round(exp(fe.ncoef - fe.nse * qnorm(0.975)), n), nsmall = n),
+                             format(round(exp(as.numeric(confint(fe.fit)[,1])), n), nsmall = n),
                              " - ",
-                             format(round(exp(fe.ncoef + fe.nse * qnorm(0.975)), n), nsmall = n),
+                             format(round(exp(as.numeric(confint(fe.fit)[,2])), n), nsmall = n),
                              ")")
         }
         else{
             fe.rr <- paste0(format(round(fe.ncoef, n), nsmall = n),
                              " (",
-                             format(round(fe.ncoef - fe.nse * qnorm(0.975), n), nsmall = n),
+                             format(round(as.numeric(confint(fe.fit)[,1]), n), nsmall = n),
                              " - ",
-                             format(round(fe.ncoef + fe.nse * qnorm(0.975), n), nsmall = n),
+                             format(round(as.numeric(confint(fe.fit)[,2]), n), nsmall = n),
                              ")")
         }
         fe.table1 <- data.frame(
