@@ -1139,203 +1139,186 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
 ## modified summary ############################################################
 #' Titlemodified summary
 #'
-#' @param frr.fit
-#' @param frr.var
+#' @param fe.fit
+#' @param fe.var
 #' @param n
 #'
 #' @return
 #' @export
 #'
-#' @examples
-frr <- function(frr.fit,
-                frr.var = NULL,
-                n = 2) {
-    Risk_ratio <- paste0(sub("^ ", "", rownames(frr.fit)[2]), " (95% CI)")
-
-    if ("rms" %in% class(frr.fit) &&
-        any((grepl("\\'", names(coef(
-            frr.fit
-        )))))) {
-        stop("Error: Including nonlinear varibale. Using frr(summary()).")
-    }
-
-    if (is.null(frr.fit)) {
-        stop("Error: Fit cannot be NULL.")
-    }
-
-    if (is.symbol(substitute(frr.var))) {
-        frr.var <- as.character(substitute(frr.var))
-    }
-
-    if ("summary.rms" %in% class(frr.fit) &&
-        "matrix" %in% class(frr.fit)) {
-        frr.table1 <- as.data.frame(frr.fit[seq(1, nrow(frr.fit), by = 2), -c(8)])
-        frr.table1$"Risk Ratio (95% CI)" <- paste0(
+#' @examples options(datadist =  datadist(iris)); iris$Species <- ifelse(iris$Species == "virginica", 0, 1)
+#' @examples fe(lm(Sepal.Length ~ ., iris), 1:3)
+#' @examples fe(lm(Sepal.Length ~ ., iris), c("Petal.Length", "Sepal.Width"))
+#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), 1:3)
+#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), c("Petal.Length", "Sepal.Width"))
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2),  Sepal.Width = c(1,2)), 1:2)
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#' @examples fe(lrm(Species ~ .,  iris), 1:3)
+#' @examples fe(lrm(Species ~ .,  iris), 1:3)
+#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
+fe <- function(fe.fit, fe.var = NULL, n = 2) {
+    Risk_ratio <- paste0(sub("^ ", "", rownames(fe.fit)[2]), " (95% CI)")
+    if (!(grepl("ratio", Risk_ratio, ignore.case = TRUE))) {Risk_ratio <- "Effect (95% CI)"}
+    if ("rms" %in% class(fe.fit) && any((grepl("\\'", names(coef(fe.fit)))))) {
+        stop("Error: Including nonlinear varibale. Use fe(summary()).")}
+    if (is.null(fe.fit)) {stop("Error: Fit cannot be NULL.")}
+    if (is.symbol(substitute(fe.var))) {fe.var <- as.character(substitute(fe.var))}
+    if ("summary.rms" %in% class(fe.fit) && "matrix" %in% class(fe.fit)) {
+        if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
+        fe.table1 <- as.data.frame(fe.fit[seq(1, nrow(fe.fit), by = 2), -c(8)])
+        fe.table1$"Risk Ratio (95% CI)" <- paste0(
             format(round(exp(
-                frr.table1$Effect
+                fe.table1$Effect
             ), n), nsmall = n),
             " (",
             format(round(exp(
-                frr.table1$"Lower 0.95"
+                fe.table1$"Lower 0.95"
             ), n), nsmall = n),
             " - ",
             format(round(exp(
-                frr.table1$"Upper 0.95"
+                fe.table1$"Upper 0.95"
             ), n), nsmall = n),
             ")"
         )
-        frr.table1$Factor <- rownames(frr.table1)
-        frr.table1 <- frr.table1[, c(
+        fe.table1$Factor <- rownames(fe.table1)
+        fe.table1 <- fe.table1[, c(
             "Factor",
             "Low",
             "High",
             "Diff.",
-            "Effect",
-            "S.E.",
-            "Lower 0.95",
-            "Upper 0.95",
             "Risk Ratio (95% CI)"
         )]
-        frr.table12 <- as.data.table(frr.table1)
-
-        if (is.character(frr.var)) {
-            if (any(grepl(" ", frr.var))) {
-                stop("Error: Invalid varibale input. Including space.")
-            } else {
-                pattern <- paste0("^(", paste(frr.var, collapse = "|"), ")")# "^" is for same initial wordss
-                frr.coef <- grep(pattern, frr.table12$Factor, value = TRUE)
-                if (length(frr.coef) == 0) {
-                    stop("Error: Invalid varibale input. Non-existent variable.")
-                }
-            }
-            frr.table <- frr.table12[grepl(paste(frr.var, collapse = "|"), frr.table12$Factor), ]
-
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)), ]
-            print(frr.table, row.names = FALSE)
-            fcopy(frr.table[, ..Risk_ratio])
-        }#end
-
-        if (is.numeric(frr.var)) {
-            if (max(frr.var) > length(frr.table12$Factor)) {
-                stop("Error: Invalid varibale input. Exceeding upper limit.")
-            }
-            if (min(frr.var) <= 0) {
-                stop("Error: Invalid varibale input. Exceeding lower limit.")
-            }
-
-            frr.indices <- seq(min(frr.var), max(frr.var))
-            frr.table <- frr.table12[frr.indices, ]
-
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)), ]
-            print(frr.table, row.names = FALSE)
-            fcopy(frr.table[, ..Risk_ratio])
-        } #end
-
-        if (is.null(frr.var)) {
-            frr.table <- frr.table12
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            frr.table <- frr.table[order(rownames(frr.table)), ]
-            print(frr.table, row.names = FALSE)
-            fcopy(frr.table[, ..Risk_ratio])
+        fe.table2 <- as.data.table(fe.table1)
+        colnames(fe.table2)[colnames(fe.table2) == "Risk Ratio (95% CI)"] <- Risk_ratio
+        } else {
+            fe.table1 <- as.data.frame(fe.fit[, -c(8)])
+            fe.table1$"Effect (95% CI)" <- paste0(
+                format(round(
+                    fe.table1$Effect
+                    , n), nsmall = n),
+                " (",
+                format(round(
+                    fe.table1$"Lower 0.95"
+                    , n), nsmall = n),
+                " - ",
+                format(round(
+                    fe.table1$"Upper 0.95"
+                    , n), nsmall = n),
+                ")"
+            )
+            fe.table1$Factor <- rownames(fe.table1)
+            fe.table1 <- fe.table1[, c(
+                "Factor",
+                "Low",
+                "High",
+                "Diff.",
+                "Effect (95% CI)"
+            )]
+            fe.table2 <- as.data.table(fe.table1)
         }
-    } else {
-        # below is for frr.fit is a fit rather than summary
-        if (is.character(frr.var)) {
-            if (any(grepl(" ", frr.var))) {
-                stop("Error: Invalid varibale input. Including space.")
-            } else {
-                pattern <- paste0("^(", paste(frr.var, collapse = "|"), ")")# "^" is for same initial wordss
-                frr.coef <- grep(pattern, frr.table12$Factor, value = TRUE)
-
-                if (length(frr.coef) == 0) {
-                    stop("Error: Invalid varibale input. Non-existent variable.")
-                }
+    # fe.var is character type
+    if (is.character(fe.var)) {
+        if (any(grepl(" ", fe.var))) {
+            stop("Error: Invalid varibale input. Including space.")
+        } else {
+            pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")")# "^" is for same initial wordss
+            fe.coef <- grep(pattern, fe.table2$Factor, value = TRUE)
+            if (length(fe.coef) == 0) {
+                stop("Error: Invalid varibale input. Non-existent variable.")
             }
-
-            frr.Standard_error <- sqrt(diag(vcov(frr.fit)))
-            frr.se <- grep(pattern, names(frr.Standard_error), value = TRUE)
-
-            frr.ncoef <- as.numeric(frr.coefficients[frr.se])
-            frr.nse <- as.numeric(frr.Standard_error[frr.se])
-
-            frr.rr <- paste0(round(exp(frr.ncoef), n),
-                             " (",
-                             round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
-                             " - ",
-                             round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
-                             ")")
-
-            frr.table <- data.frame(
-                Factor                 = names(frr.coefficients[frr.se]),
-                Effect                 = frr.ncoef,
-                S.E.                   = frr.nse,
-                "Risk Ratio (95% CI)"  = frr.rr
-            )
-            names(frr.table) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            print(frr.table, row.names = FALSE)
-            fcopy(frr.table[, ..Risk_ratio])
-        }#end
-
-        if (is.numeric(frr.var)) {
-            if (max(frr.var) > length(names(coef(frr.fit)))) {
-                stop("Error: Invalid varibale input. Exceeding upper limit.")
-            }
-            if (min(frr.var) <= 0) {
-                stop("Error: Invalid varibale input. Exceeding lower limit.")
-            }
-
-            frr.ncoef <- as.numeric(coef(frr.fit))
-            frr.nse <- as.numeric(sqrt(diag(vcov(frr.fit))))
-
-            frr.rr <- paste0(round(exp(frr.ncoef), n),
-                             " (",
-                             round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
-                             " - ",
-                             round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
-                             ")")
-
-            frr.table <- data.frame(
-                Factor                 = names(coef(frr.fit)),
-                Effect                 = frr.ncoef,
-                S.E.                   = frr.nse,
-                "Risk Ratio (95% CI)"  = frr.rr
-            )
-            names(frr.table) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
-
-            frr.indices <- seq(min(frr.var), max(frr.var))
-
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            print(frr.table[frr.indices, ], row.names = FALSE)
-            fcopy(frr.table[frr.indices, ][, -c(1:3)])
-
-        }#end
-
-        if (is.null(frr.var)) {
-            frr.ncoef <- as.numeric(coef(frr.fit))
-            frr.nse <- as.numeric(sqrt(diag(vcov(frr.fit))))
-
-            frr.rr <- paste0(round(exp(frr.ncoef), n),
-                             " (",
-                             round(exp(frr.ncoef - frr.nse * qnorm(0.975)), n),
-                             " - ",
-                             round(exp(frr.ncoef + frr.nse * qnorm(0.975)), n),
-                             ")")
-
-            frr.table <- data.frame(
-                Factor                 = names(coef(frr.fit)),
-                Effect                 = frr.ncoef,
-                S.E.                   = frr.nse,
-                "Risk Ratio (95% CI)"  = frr.rr
-            )
-            names(frr.table) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
-            colnames(frr.table)[colnames(frr.table) == "Risk Ratio (95% CI)"] <- Risk_ratio
-            print(frr.table, row.names = FALSE)
-            fcopy(frr.table[, ..Risk_ratio])
+            fe.table <- fe.table2[grepl(paste(fe.var, collapse = "|"), fe.table2$Factor), ]
         }
     }
+    # fe.var is numeric type
+    else if (is.numeric(fe.var)) {
+        if (max(fe.var) > length(fe.table2$Factor)) {
+            stop("Error: Invalid varibale input. Exceeding upper limit.")
+        } else if (min(fe.var) <= 0) {
+            stop("Error: Invalid varibale input. Exceeding lower limit.")
+        } else {
+            fe.indices <- seq(min(fe.var), max(fe.var))
+            fe.table <- fe.table2[fe.indices, ]
+        }
+    }
+    # fe.var is null
+    else if (is.null(fe.var)) {
+        fe.table <- fe.table2
+    }
+    else {stop("Error: check the function related to input of summary.")}
+        print(fe.table, row.names = FALSE)
+        fcopy(fe.table[, ..Risk_ratio])
+    }
+    #
+    # fe.fit is the fit rather than the summary
+    else if ("list" %in% typeof(fe.fit) && "matrix" %nin% class(fe.fit)) {
+        if ("ols" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
+        if ("Glm" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
+        if ("Gls" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
+        if ("lrm" %in% class(fe.fit)) {Risk_ratio <- "Odds ratio (95% CI)"}
+        if ("orm" %in% class(fe.fit)) {Risk_ratio <- "Odds ratio (95% CI)"}
+        if ("cph" %in% class(fe.fit)) {Risk_ratio <- "Hazard ratio (95% CI)"}
+        fe.ncoef <- as.numeric(coef(fe.fit))
+        fe.nse <- as.numeric(sqrt(diag(vcov(fe.fit))))
+
+        if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
+            fe.rr <- paste0(format(round(exp(fe.ncoef), n), nsmall = n),
+                             " (",
+                             format(round(exp(fe.ncoef - fe.nse * qnorm(0.975)), n), nsmall = n),
+                             " - ",
+                             format(round(exp(fe.ncoef + fe.nse * qnorm(0.975)), n), nsmall = n),
+                             ")")
+        }
+        else{
+            fe.rr <- paste0(format(round(fe.ncoef, n), nsmall = n),
+                             " (",
+                             format(round(fe.ncoef - fe.nse * qnorm(0.975), n), nsmall = n),
+                             " - ",
+                             format(round(fe.ncoef + fe.nse * qnorm(0.975), n), nsmall = n),
+                             ")")
+        }
+        fe.table1 <- data.frame(
+            Factor                 = names(coef(fe.fit)),
+            Effect                 = fe.ncoef,
+            S.E.                   = fe.nse,
+            "Risk Ratio (95% CI)"  = fe.rr
+        )
+        names(fe.table1) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
+        colnames(fe.table1)[colnames(fe.table1) == "Risk Ratio (95% CI)"] <- Risk_ratio
+        fe.table1 <- as.data.table(fe.table1)
+        # fe.var is character type
+        if (is.character(fe.var)) {
+            if (any(grepl(" ", fe.var))) {
+                stop("Error: Invalid varibale input. Including space.")
+            } else {
+                pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")")# "^" is for same initial words
+                fe.coef <- grep(pattern, fe.table1$Factor, value = TRUE)
+                if (length(fe.coef) == 0) {
+                    stop("Error: Invalid varibale input. Non-existent variable.")
+                }
+            }
+            fe.table <- fe.table1[grepl(paste(fe.var, collapse = "|"), fe.table1$Factor), ]
+        }
+        # fe.var is numeric type
+        else if (is.numeric(fe.var)) {
+            if (max(fe.var) > length(names(coef(fe.fit)))) {
+                stop("Error: Invalid varibale input. Exceeding upper limit.")
+            }
+            if (min(fe.var) <= 0) {
+                stop("Error: Invalid varibale input. Exceeding lower limit.")
+            }
+            fe.indices <- seq(min(fe.var), max(fe.var))
+            fe.table <- fe.table1[fe.indices, ]
+        }
+        # fe.var is null
+        else if (is.null(fe.var)) {
+            fe.table <- fe.table1
+        }
+        else {stop("Error: check the function related to input of fit.")}
+        print(fe.table, row.names = FALSE)
+        fcopy(fe.table[, ..Risk_ratio])
+    }
+        else {stop("Error: this is an input except fit or summary or other situations; chekc the fe function.")}
 }
 
 
