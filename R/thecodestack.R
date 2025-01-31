@@ -1252,15 +1252,19 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
     #
     # fe.fit is the fit rather than the summary
     else if ("list" %in% typeof(fe.fit) && "matrix" %nin% class(fe.fit)) {
-        if ("ols" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
-        if ("Glm" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
-        if ("Gls" %in% class(fe.fit)) {Risk_ratio <- "Effect (95% CI)"}
-        if ("lrm" %in% class(fe.fit)) {Risk_ratio <- "Odds ratio (95% CI)"}
-        if ("orm" %in% class(fe.fit)) {Risk_ratio <- "Odds ratio (95% CI)"}
-        if ("cph" %in% class(fe.fit)) {Risk_ratio <- "Hazard ratio (95% CI)"}
+         model_classes <- list("ols" = "Effect (95% CI)",
+                               "Glm" = "Effect (95% CI)",
+                               "Gls" = "Effect (95% CI)",
+                               "glm" = "Effect (95% CI)",
+                               "lrm" = "Odds ratio (95% CI)",
+                               "orm" = "Odds ratio (95% CI)",
+                               "cph" = "Hazard ratio (95% CI)",
+                               "coxph" = "Hazard ratio (95% CI)"
+                              )
+        Risk_ratio <- model_classes[[class(fe.fit)[1]]]
+        if (grepl("logit", fe.fit$family$link)) { Risk_ratio <- "Odds ratio (95% CI)"}
         fe.ncoef <- as.numeric(coef(fe.fit))
         fe.nse <- as.numeric(sqrt(diag(vcov(fe.fit))))
-
         if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
             fe.rr <- paste0(format(round(exp(fe.ncoef), n), nsmall = n),
                              " (",
