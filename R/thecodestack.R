@@ -4,33 +4,33 @@
 ## rounding ####################################################################
 #' Title rounding
 #'
-#' @param data
+#' @param d
 #' @param n
 #'
 #' @return
 #' @export
 #'
-#' @examples round_function(iris[1:10,]$Sepal.Length,1)
-round_function <- function(data, n) {
-    data_sign  <- sign(data)
-    data       <- abs(data) * 10^n
-    data       <- data + 0.5
-    data       <- trunc(data)
-    return(data_sign * data / 10^n)
+#' @examples fround(4.5, 0);round(4.5, 0)
+fround <- function(d, n) {
+    s  <- sign(d)
+    d  <- abs(d) * 10^n
+    d  <- d + 0.5
+    d  <- trunc(d)
+    return(s * d / 10^n)
 }
 
-## copy paste ##################################################################
-#' Title copy paste
+## copy ########################################################################
+#' Title copy
 #'
-#' @param fcopy.var
+#' @param c
 #'
 #' @return
 #' @export
 #'
 #' @examples fcopy(iris$Sepal.Length)
-fcopy <- function(fcopy.var) {
+fcopy <- function(c) {
     write.table(
-        fcopy.var,
+        c,
         paste0("clipboard-", formatC(
             100 * 100, format = "f", digits = 0
         )),
@@ -44,16 +44,17 @@ fcopy <- function(fcopy.var) {
 ## geometric mean ##############################################################
 #' geometric mean
 #'
-#' @param geo_mean.values  the $variable
+#' @param g
 #'
 #' @return geometric mean
 #' @export
 #'
-#' @examples geo_mean(iris$Sepal.Length)
+#' @examples fgmean(iris$Sepal.Length)
 # expmean(log(x))) # geometric mean
 # exp(sum(log(x)/length(x)) # geometric mean
 # exp(mean(log(x)))
-geo_mean <- function(geo_mean.values){exp(mean(log(geo_mean.values)))}
+fgmean <- function(g){exp(mean(log(g)))}
+
 
 ## frequency and type ##########################################################
 #' Title
@@ -511,61 +512,6 @@ fbp <- function(fbp.exposure, fbp.outcome) {
     print(fbp.plot)
 }
 
-## dummy variable ##############################################################
-#' Title
-#'
-#' @param fdv.variable
-#' @param fdv.n
-#'
-#' @return
-#' @export
-#'
-#' @examples fdv(iris$Sepal.Length,3)
-fdv <- function(fdv.variable,fdv.n){
-    fdv.dummy <- cut(fdv.variable,
-                     quantile(fdv.variable,
-                              probs = seq(0, 1, 1/fdv.n),
-                              na.rm = TRUE
-                     ),
-                     labels = c(0:(fdv.n - 1)),
-                     include.lowest = TRUE
-    )
-    return(fdv.dummy)
-}
-
-## update Japanese calender ####################################################
-#' Title
-#'
-#' @param J.calendar
-#'
-#' @return
-#' @export
-#'
-#' @examples update.J.cal(c("平 5", "令 1.12.12"))
-update.J.cal <- function(J.calendar) {
-    J.calendar <- gsub(" ", "", J.calendar)
-    for (i in 1:15) {
-        old_val <- paste0("大", i)
-        new_val <- paste0(1911 + i)
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:64) {
-        old_val <- paste0("昭", i)
-        new_val <- paste0(1925 + i)
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:31) {
-        old_val <- paste0("平", i)
-        new_val <- paste0(1988 + i)
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    for (i in 1:50) {
-        old_val <- paste0("令", i)
-        new_val <- paste0(2018 + i)
-        J.calendar <- gsub(old_val, new_val, J.calendar)
-    }
-    return(J.calendar)
-}
 
 ##【Data analysis】#############################################################
 ## Table 1 #####################################################################
@@ -867,83 +813,12 @@ ORs <- function(ORs.analysis_data,ORs.model,ORs.n){
     )
 }
 
-#' logistic model
-#'
-#' @param flrm.data
-#' @param flrm.model
-#' @param flrm.n
-#' @param flrm.t
-#'
-#' @return
-#' @export
-#'
-#' @examples
-flrm <- function(flrm.data, flrm.model, flrm.n = 1, flrm.t = FALSE){
-    flrm.fit <- lrm(formula = flrm.model,
-                    data    = environment(flrm.data))
-    flrm.table <- as.data.frame(summary(flrm.fit))
-    flrm.summary <- format(round(exp(flrm.table[seq(1,
-                                                    nrow(flrm.table),
-                                                    by = 2),
-                                                    c(4, 6:7)]), # ORs locations
-                                                    2),
-                           nsmall = 2)
-    flrm.table <- data.table(
-        Vars  = rownames(flrm.summary),
-        ORs   = paste0(flrm.summary[,1],
-                       "(",
-                       flrm.summary[,2],
-                       "-",
-                       flrm.summary[,3],
-                       ")")
-    )
-    flrm.clip <- flrm.table[(nrow(flrm.table) - flrm.n + 1):nrow(flrm.table)]
-    if (flrm.t) {
-        flrm.clip.output <- t(flrm.clip[,2])
-    } else{
-        flrm.clip.output <- flrm.clip[,2]
-    }
-    print(flrm.fit, coefs = 0)
-    cat("\n")
-    cat("\n")
-    print(summary(flrm.fit))
-    print(flrm.clip)
-    write.table(flrm.clip.output,
-                paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
-                ),
-                sep       = "\t",
-                row.names = FALSE,
-                col.names = FALSE,
-                dec       = "."
-    )
-}
 
 ## cox model ###################################################################
 # The proportional hazards assumption is checked using statistical tests and
 # -graphical diagnostics based on the scaled Schoenfeld residuals.
 # In principle, the Schoenfeld residuals are independent of time. Plot with a
 # -non-random pattern against time is evidence of violation of the assumption.
-#' Proportional hazards assumption
-#'
-#' @param phdata
-#' @param phmodel
-#'
-#' @return
-#' @export
-#'
-#' @examples
-PH_assumption <- function(phdata,phmodel){
-    phdata <<- phdata
-    zph <- survival::cox.zph(survival::coxph(phmodel,
-                                             data = phdata))
-    print(zph)
-    survminer::ggcoxzph(zph)
-    rm(phdata, envir = .GlobalEnv)
-}
-
 #' Cox model
 #'
 #' @param HRs.analysis_data
@@ -996,54 +871,6 @@ HRs <- function(HRs.analysis_data,HRs.model,HRs.n){
                 col.names = FALSE,
                 dec       = "."
     )
-}
-
-#' Cox model with rcs
-#'
-#' @param fcph.data
-#' @param fcph.model
-#' @param fcph.n
-#'
-#' @return
-#' @export
-#'
-#' @examples
-fcph <- function(fcph.data, fcph.model, fcph.n){
-cox_model <- cph(fcph.model,
-    ,
-    x = TRUE,
-    y = TRUE,
-    data = fcph.data
-)
-summary(cox_model)
-cox.model_results <- exp(cbind(HRs = coef(cox_model),
-                               confint(cox_model)))
-cox.round_results <- round(cox.model_results,2)
-cox.table <- data.table(
-    Exposures = row.names(cox.round_results),
-    HRs       = paste(
-        sprintf("%.2f", cox.round_results[, 1]),
-        " (",
-        sprintf("%.2f", cox.round_results[, 2]),
-        "-",
-        sprintf("%.2f", cox.round_results[, 3]),
-        ")",
-        sep = ""
-    )
-)
-print(cox_model)
-print(cox.table)
-cox.print <- cox.table[(nrow(cox.table) - fcph.n + 1):nrow(cox.table), c("HRs")]
-write.table(cox.print,
-            paste0("clipboard-",
-                   formatC(100*100,
-                           format = "f",
-                           digits = 0)),
-            sep       = "\t",
-            row.names = FALSE,
-            col.names = FALSE,
-            dec       = "."
-)
 }
 
 
@@ -1136,7 +963,8 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
     )
 }
 
-## modified summary ############################################################
+
+## modified summary.rms ########################################################
 #' Titlemodified summary
 #'
 #' @param fe.fit
@@ -1146,86 +974,65 @@ Fine.Gray.HRs <- function(FG.time,FG.status,FG.model,FG.n){
 #' @return
 #' @export
 #'
-#' @examples options(datadist =  datadist(iris)); iris$Species <- ifelse(iris$Species == "virginica", 0, 1)
-#' @examples fe(lm(Sepal.Length ~ ., iris), 1:3)
+#' @examples options(datadist =  datadist(iris)); iris$Species <-  sample(0:1, 150, replace = TRUE)
+#'
+#' @examples fe(lm(Sepal.Length ~ ., iris), 2:3)
 #' @examples fe(lm(Sepal.Length ~ ., iris), c("Petal.Length", "Sepal.Width"))
-#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), 1:3)
+#'
+#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), 2:3)
 #' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), c("Petal.Length", "Sepal.Width"))
-#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2),  Sepal.Width = c(1,2)), 1:2)
-#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
-#' @examples fe(lrm(Species ~ .,  iris), 1:3)
-#' @examples fe(lrm(Species ~ .,  iris), 1:3)
-#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#'
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), 1:2)
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#'
+#' @examples fe(lrm(Species ~.,  iris), 2:3)
+#' @examples fe(lrm(Species ~ .,  iris),c("Petal.Length", "Sepal.Width"))
+#'
+#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), 2:3)
 #' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
 fe <- function(fe.fit, fe.var = NULL, n = 2) {
     Risk_ratio <- paste0(sub("^ ", "", rownames(fe.fit)[2]), " (95% CI)")
     if (!(grepl("ratio", Risk_ratio, ignore.case = TRUE))) {Risk_ratio <- "Effect (95% CI)"}
     if ("rms" %in% class(fe.fit) && any((grepl("\\'", names(coef(fe.fit)))))) {
-        stop("Error: Including nonlinear varibale. Use fe(summary()).")}
-    if (is.null(fe.fit)) {stop("Error: Fit cannot be NULL.")}
+        stop("Error: including nonlinear varibale. use fe(summary()).")}
+    if (is.null(fe.fit)) {stop("Error: fit is NULL.")}
     if (is.symbol(substitute(fe.var))) {fe.var <- as.character(substitute(fe.var))}
     if ("summary.rms" %in% class(fe.fit) && "matrix" %in% class(fe.fit)) {
         if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
         fe.table1 <- as.data.frame(fe.fit[seq(1, nrow(fe.fit), by = 2), -c(8)])
-        fe.table1$"Risk Ratio (95% CI)" <- paste0(
-            format(round(exp(
-                fe.table1$Effect
-            ), n), nsmall = n),
+        fe.table1$"E (95% CI)" <- paste0(
+            format(round(as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 4]), n), nsmall = n),
             " (",
-            format(round(exp(
-                fe.table1$"Lower 0.95"
-            ), n), nsmall = n),
+            format(round(as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 6]), n), nsmall = n),
             " - ",
-            format(round(exp(
-                fe.table1$"Upper 0.95"
-            ), n), nsmall = n),
+            format(round(as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 7]), n), nsmall = n),
             ")"
         )
         fe.table1$Factor <- rownames(fe.table1)
-        fe.table1 <- fe.table1[, c(
-            "Factor",
-            "Low",
-            "High",
-            "Diff.",
-            "Risk Ratio (95% CI)"
-        )]
-        fe.table2 <- as.data.table(fe.table1)
-        colnames(fe.table2)[colnames(fe.table2) == "Risk Ratio (95% CI)"] <- Risk_ratio
         } else {
             fe.table1 <- as.data.frame(fe.fit[, -c(8)])
-            fe.table1$"Effect (95% CI)" <- paste0(
-                format(round(
-                    fe.table1$Effect
-                    , n), nsmall = n),
+            fe.table1$"E (95% CI)" <- paste0(
+                format(round(fe.table1$Effect, n), nsmall = n),
                 " (",
-                format(round(
-                    fe.table1$"Lower 0.95"
-                    , n), nsmall = n),
+                format(round(fe.table1$"Lower 0.95", n), nsmall = n),
                 " - ",
-                format(round(
-                    fe.table1$"Upper 0.95"
-                    , n), nsmall = n),
+                format(round(fe.table1$"Upper 0.95", n), nsmall = n),
                 ")"
             )
             fe.table1$Factor <- rownames(fe.table1)
-            fe.table1 <- fe.table1[, c(
-                "Factor",
-                "Low",
-                "High",
-                "Diff.",
-                "Effect (95% CI)"
-            )]
-            fe.table2 <- as.data.table(fe.table1)
         }
+        fe.table1 <- fe.table1[, c("Factor","Low","High","Diff.","E (95% CI)")]
+        fe.table2 <- as.data.table(fe.table1)
+        colnames(fe.table2)[colnames(fe.table2) == "E (95% CI)"] <- Risk_ratio
     # fe.var is character type
     if (is.character(fe.var)) {
         if (any(grepl(" ", fe.var))) {
-            stop("Error: Invalid varibale input. Including space.")
+            stop("Error: invalid varibale input. including space.")
         } else {
             pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")")# "^" is for same initial wordss
             fe.coef <- grep(pattern, fe.table2$Factor, value = TRUE)
             if (length(fe.coef) == 0) {
-                stop("Error: Invalid varibale input. Non-existent variable.")
+                stop("Error: invalid varibale input. non-existent variable.")
             }
             fe.table <- fe.table2[grepl(paste(fe.var, collapse = "|"), fe.table2$Factor), ]
         }
@@ -1233,47 +1040,56 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
     # fe.var is numeric type
     else if (is.numeric(fe.var)) {
         if (max(fe.var) > length(fe.table2$Factor)) {
-            stop("Error: Invalid varibale input. Exceeding upper limit.")
+            stop("Error: invalid varibale input. exceeding upper limit.")
         } else if (min(fe.var) <= 0) {
-            stop("Error: Invalid varibale input. Exceeding lower limit.")
+            stop("Error: invalid varibale input. exceeding lower limit.")
         } else {
             fe.indices <- seq(min(fe.var), max(fe.var))
             fe.table <- fe.table2[fe.indices, ]
         }
     }
     # fe.var is null
-    else if (is.null(fe.var)) {
-        fe.table <- fe.table2
-    }
-    else {stop("Error: check the function related to input of summary.")}
+    else if (is.null(fe.var)) {fe.table <- fe.table2}
+    else {stop("Error: check function related to input of summary.rms.")}
         print(fe.table, row.names = FALSE)
         fcopy(fe.table[, ..Risk_ratio])
     }
     #
     # fe.fit is the fit rather than the summary
     else if ("list" %in% typeof(fe.fit) && "matrix" %nin% class(fe.fit)) {
-         model_classes <- list("ols" = "Effect (95% CI)",
-                               "Glm" = "Effect (95% CI)",
-                               "Gls" = "Effect (95% CI)",
-                               "glm" = "Effect (95% CI)",
-                               "lrm" = "Odds ratio (95% CI)",
-                               "orm" = "Odds ratio (95% CI)",
-                               "cph" = "Hazard ratio (95% CI)",
-                               "coxph" = "Hazard ratio (95% CI)"
-                              )
+        model_classes <- as.list(setNames(
+            c(rep("Effect (95% CI)", 5),
+              rep("Odds ratio (95% CI)", 2),
+              rep("Hazard ratio (95% CI)", 2)),
+            c("lm", "glm", "ols", "Glm", "Gls",  # rep("Effect (95% CI)", 5)
+              "lrm", "orm", # rep("Odds ratio (95% CI)", 2)
+              "cph", "coxph") # rep("Hazard ratio (95% CI)", 2))
+        ))
         Risk_ratio <- model_classes[[class(fe.fit)[1]]]
-        if ("glm" %in% class(fe.fit)) && grepl("logit", fe.fit$family$link)) { Risk_ratio <- "Odds ratio (95% CI)"}
-        fe.ncoef <- as.numeric(coef(fe.fit))
+        if (is.null(Risk_ratio)) {stop("Error: check `model_classes` in function.")}
+        if ("glm" %in% class(fe.fit) &&
+            "rms" %nin% class(fe.fit) &&
+            (length(fe.fit$family$link) > 0 && grepl("logit", fe.fit$family$link))
+            ) { Risk_ratio <- "Odds ratio (95% CI)"}
         if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
-            fe.rr <- paste0(format(round(exp(fe.ncoef), n), nsmall = n),
-                             " (",
-                             format(round(exp(as.numeric(confint(fe.fit)[,1])), n), nsmall = n),
-                             " - ",
-                             format(round(exp(as.numeric(confint(fe.fit)[,2])), n), nsmall = n),
-                             ")")
-        }
-        else{
-            fe.rr <- paste0(format(round(fe.ncoef, n), nsmall = n),
+            if ("rms" %in% class(fe.fit)) {
+            fe.rr <- paste0(format(round(as.numeric(summary(fe.fit)[seq(2, nrow(summary(fe.fit)), by = 2),4]), n), nsmall = n),
+                            " (",
+                            format(round(as.numeric(summary(fe.fit)[seq(2, nrow(summary(fe.fit)), by = 2),6]), n), nsmall = n),
+                            " - ",
+                            format(round(as.numeric(summary(fe.fit)[seq(2, nrow(summary(fe.fit)), by = 2),7]), n), nsmall = n),
+                            ")")
+            fe.rr <- c("", fe.rr)
+            } else {
+            fe.rr <- paste0(format(round(exp(coef(fe.fit)), n), nsmall = n),
+                            " (",
+                            format(round(exp(as.numeric(confint(fe.fit)[,1])), n), nsmall = n),
+                            " - ",
+                            format(round(exp(as.numeric(confint(fe.fit)[,2])), n), nsmall = n),
+                            ")")
+            }
+        } else {
+            fe.rr <- paste0(format(round(coef(fe.fit), n), nsmall = n),
                              " (",
                              format(round(as.numeric(confint(fe.fit)[,1]), n), nsmall = n),
                              " - ",
@@ -1282,22 +1098,23 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
         }
         fe.table1 <- data.frame(
             Factor                 = names(coef(fe.fit)),
-            Effect                 = fe.ncoef,
-            S.E.                   = fe.nse,
+            Effect                 = coef(fe.fit),
+            S.E.                   = sqrt(diag(vcov(fe.fit))),
             "Risk Ratio (95% CI)"  = fe.rr
         )
         names(fe.table1) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
         colnames(fe.table1)[colnames(fe.table1) == "Risk Ratio (95% CI)"] <- Risk_ratio
         fe.table1 <- as.data.table(fe.table1)
+        fe.table1 <- fe.table1[fe.table1[[4]] != "", ]
         # fe.var is character type
         if (is.character(fe.var)) {
             if (any(grepl(" ", fe.var))) {
-                stop("Error: Invalid varibale input. Including space.")
+                stop("Error: invalid varibale input. including space.")
             } else {
                 pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")")# "^" is for same initial words
                 fe.coef <- grep(pattern, fe.table1$Factor, value = TRUE)
                 if (length(fe.coef) == 0) {
-                    stop("Error: Invalid varibale input. Non-existent variable.")
+                    stop("Error: invalid varibale input. non-existent variable.")
                 }
             }
             fe.table <- fe.table1[grepl(paste(fe.var, collapse = "|"), fe.table1$Factor), ]
@@ -1305,23 +1122,20 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
         # fe.var is numeric type
         else if (is.numeric(fe.var)) {
             if (max(fe.var) > length(names(coef(fe.fit)))) {
-                stop("Error: Invalid varibale input. Exceeding upper limit.")
+                stop("Error: invalid varibale input. exceeding upper limit.")
             }
             if (min(fe.var) <= 0) {
-                stop("Error: Invalid varibale input. Exceeding lower limit.")
+                stop("Error: invalid varibale input. exceeding lower limit.")
             }
             fe.indices <- seq(min(fe.var), max(fe.var))
             fe.table <- fe.table1[fe.indices, ]
         }
         # fe.var is null
-        else if (is.null(fe.var)) {
-            fe.table <- fe.table1
-        }
-        else {stop("Error: check the function related to input of fit.")}
+        else if (is.null(fe.var)) {fe.table <- fe.table1}
+        else {stop("Error: check function related to input of fit.")}
         print(fe.table, row.names = FALSE)
         fcopy(fe.table[, ..Risk_ratio])
-    }
-        else {stop("Error: this is an input except fit or summary or other situations; chekc the fe function.")}
+    } else {stop("Error: input except fit or summary.rms; check function.")}
 }
 
 
