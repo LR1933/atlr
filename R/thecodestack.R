@@ -143,7 +143,7 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
 #'            fs.group <- iris$Species
 #' @examples  fs(iris$Sepal.Length, iris$Species)
 #' @examples  fs(iris$Sepal.Length)
-fs <- function(fs.varibale, fs.group = NA, fs.html = TRUE){
+fs <- function(fs.varibale, fs.group = NA, fs.html = FALSE){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
     fs.table  <- fsd[, .(N       = NROW(var),
