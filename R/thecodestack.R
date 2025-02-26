@@ -80,7 +80,7 @@ fd <- function(fd.variable, fd.bar = TRUE) {
                     cex.names = 1,
                     main = paste(
                         "Frequency distribution for",
-                        d.variable.label
+                        ffd.variable.label
                     ),
                     xlab = paste(fd.variable.label, "values"),
                     ylab = "Frequency",
