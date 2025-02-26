@@ -59,51 +59,51 @@ fgmean <- function(g){exp(mean(log(g)))}
 ## frequency and type ##########################################################
 #' Title
 #'
-#' @param fvar.variable
-#' @param fvar.bar
+#' @param fd.variable
+#' @param fd.bar
 #'
 #' @return
 #' @export
 #'
-#' @examples fvar(iris$Sepal.Length)
-fvar <- function(fvar.variable, fvar.bar = TRUE) {
-    fvar.variable.label <-
-        sub(".*\\$", "", deparse(substitute(fvar.variable)))
-        if (nlevels(as.factor(fvar.variable)) <= 10) {
+#' @examples fd(iris$Sepal.Length)
+fd <- function(fd.variable, fd.bar = TRUE) {
+    fd.variable.label <-
+        sub(".*\\$", "", deparse(substitute(fd.variable)))
+        if (nlevels(as.factor(fd.variable)) <= 10) {
             print(
                 epiDisplay::tab1(
-                    fvar.variable,
-                    graph = fvar.bar,
+                    fd.variable,
+                    graph = fd.bar,
                     missing = TRUE,
                     bar.values = "frequency",
                     cex = 1,
                     cex.names = 1,
                     main = paste(
                         "Frequency distribution for",
-                        fvar.variable.label
+                        d.variable.label
                     ),
-                    xlab = paste(fvar.variable.label, "values"),
+                    xlab = paste(fd.variable.label, "values"),
                     ylab = "Frequency",
-                    col = "black"
+                    col = "gray25"
                 )
             )
         }
         else{
             print(
                 epiDisplay::tab1(
-                    fvar.variable,
-                    graph = fvar.bar,
+                    fd.variable,
+                    graph = fd.bar,
                     missing = TRUE,
                     bar.values = 0,
                     cex = 1,
                     cex.names = 1,
                     main = paste(
                         "Frequency distribution for",
-                        fvar.variable.label
+                        fd.variable.label
                     ),
-                    xlab = paste(fvar.variable.label, "values"),
+                    xlab = paste(fd.variable.label, "values"),
                     ylab = "Frequency",
-                    col = "black"
+                    col = "gray25"
                 )
             )
         }
@@ -111,20 +111,20 @@ fvar <- function(fvar.variable, fvar.bar = TRUE) {
         "\n",
         paste(
             "Type/class of variable: ",
-            typeof(fvar.variable),
+            typeof(fd.variable),
             "/",
-            class(fvar.variable)
+            class(fd.variable)
         ),
         "\n",
         paste(
             "No. of zero/missing/null/space-inclusive variables: ",
-            sum(fvar.variable %in% c(0,"0"), na.rm = TRUE),
+            sum(fd.variable %in% c(0,"0"), na.rm = TRUE),
             "/",
-            sum(is.na(fvar.variable)),
+            sum(is.na(fd.variable)),
             "/",
-            sum(is.null(fvar.variable)),
+            sum(is.null(fd.variable)),
             "/",
-            sum(grepl(" ", fvar.variable))
+            sum(grepl(" ", fd.variable))
         ),
         sep = ""
     )
@@ -595,72 +595,41 @@ Table.one <- function(Table_one.analysis_data,
 ## number of total and event ###################################################
 #' Title
 #'
-#' @param fpn.event
-#' @param fpn.exposure
+#' @param fn.event
+#' @param fn.exposure
 #'
 #' @return
 #' @export
 #'
-#'           fpn.event <- sample(0:1, 150, replace = TRUE)
-#'           fpn.exposure <- iris$Species
-#' @examples fpn(sample(0:1, 150, replace = TRUE), iris$Species)
+#'           Event <- sample(0:1, 150, replace = TRUE)
+#'           Exposure <- iris$Species
+#' @examples fn(iris$Petal.Length, iris$Species, T, F)
+#' @examples fn(sample(0:1, 150, replace = TRUE), iris$Species, T, T)
+fn　<- function(Event, Exposure, fn.prop = FALSE, fn.test = FALSE){
+      fn.crosstable <- gmodels::CrossTable(
+        Event,
+        Exposure,
+        fisher = fn.test,
+        prop.t = fn.prop,
+        prop.r = fn.prop,
+        prop.c = fn.prop
+      )
 
-fpn　<- function(fpn.event, fpn.exposure, fpn.test = FALSE){
-  if (length(unique(fpn.event)) == 2) {
-    if (fpn.test) {
-      fpn.crosstable <- gmodels::CrossTable(
-        fpn.event,
-        fpn.exposure,
-        fisher = TRUE,
-        prop.t = FALSE,
-        prop.r = FALSE,
-        prop.c = FALSE
-      )
-    } else {
-      fpn.crosstable <- gmodels::CrossTable(
-        fpn.event,
-        fpn.exposure,
-        fisher = FALSE,
-        prop.t = FALSE,
-        prop.r = FALSE,
-        prop.c = FALSE
-      )
+    if (length(unique(Event)) == 2) {
+    fn.occurtable <- data.table("No. of participants"   = fn.crosstable$t[1, ] + fn.crosstable$t[2, ],
+                                "No. of events"         = fn.crosstable$t[2, ])
+    fn.occurtable$"No.of participants" <- rowSums(fn.occurtable)
+    fn.h_occurtable <- transpose(fn.occurtable, keep.names = "RowNames")
+    colnames(fn.h_occurtable) <-  c("RowNames", as.character(unique(Exposure)))
+    fn.h_occurtable$Total = rowSums(fn.h_occurtable[, -1, with = FALSE])
+    fn.return <- as.data.frame(fn.h_occurtable[RowNames %in% c("No. of participants",
+                                                               "No. of events")])
+    cat(paste0("Event   : ", sub(".*\\$", "", deparse(substitute(Event))),   "\n"))
+    cat(paste0("Exposure: ", sub(".*\\$", "", deparse(substitute(Exposure))),"\n"))
+    fcopy(fn.return)
+    setnames(fn.return, "RowNames", sub(".*\\$", "", deparse(substitute(Exposure))))
+    print(fn.return)
     }
-  }
-    fpn.occurtable <- data.table("No.of participants"  = fpn.crosstable$t[1, ],
-                                 "No.of cases"         = fpn.crosstable$t[2, ])
-    fpn.occurtable$"No.of participants" <- rowSums(fpn.occurtable)
-    fpn.h_occurtable <- transpose(fpn.occurtable,
-                                 keep.names = "RowNames")
-    colnames(fpn.h_occurtable) <-  c("RowNames", as.character(unique(fpn.exposure)))
-    fpn.h_occurtable$Total = rowSums(fpn.h_occurtable[, -1, with = FALSE])
-    fpn.return <- as.data.frame(fpn.h_occurtable[RowNames %in% c("No.of participants",
-                                                                 "No.of cases")])
-    cat(paste0("Event   : ", sub(".*\\$", "", deparse(substitute(fpn.event))),"\n"))
-    cat(paste0("Exposure: ", sub(".*\\$", "", deparse(substitute(fpn.exposure))),"\n"))
-    fcopy(fpn.return)
-    setnames(fpn.return, "RowNames", sub(".*\\$", "", deparse(substitute(fpn.exposure))))
-    print(DT::datatable(
-        fpn.return,
-        options = list(
-            paging    = FALSE,
-            searching = FALSE,
-            info      = FALSE
-        ),
-        rownames      = FALSE,
-        class         = "display compact",
-        caption       = htmltools::tags$caption(
-            style     = "caption-side: bottom;
-                         text-align: left;
-                         color: black;
-                         font-size: 14px;",
-                         paste0("Event   : ",
-                         sub(".*\\$", "", deparse(substitute(fpn.event))),
-                         "\n"
-                         )
-            )
-        )
-    )
 }
 
 ## number of person-years ######################################################
@@ -683,30 +652,19 @@ fpy <- function(fpy.pyear, fpy.exposure) {
   fpy.table[, Total := c(sum(as.numeric(fpy[[3]])))]
   fpy.table[] <- lapply(fpy.table, as.numeric)
   fpy.table[] <- lapply(fpy.table, function(x) round(x, 2))
-  fpy.table$"" <- paste0("Person-years for ", sub(".*\\$", "", deparse(substitute(fpy.pyear))))
+  fpy.table$"" <- "Person years"
   setcolorder(fpy.table, c("", setdiff(names(fpy.table), "")))
   setnames(fpy.table, names(fpy.table)[1],sub(".*\\$", "", deparse(substitute(fpy.exposure))))
   fpy.table <- as.data.frame(fpy.table)
   rownames(fpy.table) <- c("")
-  print(as.data.frame(fpy.table))
   fpy.table[] <- lapply(fpy.table, function(x)
-      if (is.numeric(x))
-          round(x, 0)
-      else
-          x)
-  print(DT::datatable(
-      fpy.table,
-      options = list(
-          paging    = FALSE,
-          searching = FALSE,
-          info      = FALSE
-      ),
-      rownames      = FALSE,
-      class         = "display compact"
-      )
-      )
-  fpy.table[1, 1] <- "Person-years"
-  fcopy(t(unlist(fpy.table[1,], use.names = FALSE)))
+      if (is.numeric(x)) round(x, 0)
+      else x)
+  fcopy(fpy.table)
+  cat(paste0("Person years for ", sub(".*\\$", "", deparse(substitute(fpy.pyear)))))
+  cat("\n")
+  cat("\n")
+  print(fpy.table)
 }
 
 ## linear model ################################################################

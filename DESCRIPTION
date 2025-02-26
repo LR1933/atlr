@@ -1,9 +1,8 @@
 Package: atlr
 Type: A private R package
 Title: A package of miscellaneous R functions
-Version: 2025.02.06
+Version: 2025.02.26
 Author: Lijiaqi
-Maintainer: The package maintainer <yourself@somewhere.net>
 Description:  A private R package
 License: no license
 Depends: tidyverse, DescTools, lubridate, tableone, data.table, DT, htmltools, rms
