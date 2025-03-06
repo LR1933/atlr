@@ -41,6 +41,35 @@ fcopy <- function(c) {
     )
 }
 
+
+## update Japanese calender ####################################################
+#' Title update Japanese calender
+#'
+#' @param J
+#'
+#' @return
+#' @export
+#'
+#' @examples update.J.cal(c("平 5", "令 1.12.12"))
+update.J.cal <- function(J) {
+  J <- gsub(" ", "", J)
+  rule <- list(
+    list(p = "大", s = 1911, count = 15),
+    list(p = "昭", s = 1925, count = 64),
+    list(p = "平", s = 1988, count = 31),
+    list(p = "令", s = 2018, count = 50)
+  )
+  for (y in rule) {
+    old.vals <- paste0("^", y$p, sprintf("%02d", 1:y$count))  
+    new.vals <- paste0(y$s + (1:y$count))
+    for (i in 1:y$count) {
+      J <- gsub(old.vals[i], new.vals[i], J)
+    }
+  }
+  return(J)
+}
+
+
 ## geometric mean ##############################################################
 #' geometric mean
 #'
