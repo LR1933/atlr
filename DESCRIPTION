@@ -5,7 +5,7 @@ Version: 2025.02.26
 Author: Lijiaqi
 Description:  A private R package
 License: no license
-Depends: tidyverse, DescTools, lubridate, tableone, data.table, DT, htmltools, rms
+Depends: tidyverse, DescTools, lubridate, tableone, data.table, DT, survival, htmltools, rms
 Encoding: UTF-8
 LazyData: true
 Theme: themes/dark.rstheme
