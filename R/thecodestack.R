@@ -515,81 +515,107 @@ fbp <- function(fbp.exposure, fbp.outcome) {
 
 ##【Data analysis】#############################################################
 ## Table 1 #####################################################################
+# https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html
 #' Title
 #'
-#' @param Table_one.analysis_data
-#' @param Table_one.all_varibales
-#' @param Table_one.categorical_variables
-#' @param Table_one.group
-#' @param Table_one.nonnormal_variables
-#' @param Table_one.contDigits
+#' @param T1.data
+#' @param T1.vars
+#' @param T1.cats
+#' @param T1.nvars
+#' @param T1.group
+#' @param T1.cdig
+#' @param T1.test
 #'
 #' @return
 #' @export
 #'
 #' @examples
-Table.one <- function(Table_one.analysis_data,
-                      Table_one.all_varibales,
-                      Table_one.categorical_variables,
-                      Table_one.nonnormal_variables = NULL,
-                      Table_one.group = NA,
-                      Table_one.contDigits = 2,
-                      Table_one.test = FALSE
-) {
-    if (is.na(Table_one.group)) {
-        Table_one.print <- print(
+T1 <- function(T1.data,
+               T1.vars,
+               T1.cats,
+               T1.nvars = NULL,
+               T1.group = NULL,
+               T1.cdig  = 1,
+               T1.test  = FALSE
+               ) {
+    if (is.null(T1.group)) {
+        T1.print <- print(
             tableone::CreateTableOne(
-                data          = Table_one.analysis_data,
-                vars          = Table_one.all_varibales,
-                test          = Table_one.test,
-                factorVars    = Table_one.categorical_variables
+                data          = T1.data,
+                vars          = T1.vars,
+                test          = T1.test,
+                factorVars    = T1.cats
             ),
-            contDigits    = Table_one.contDigits,
-            format        = c("p"),
-            # format        = c("fp", "f", "p", "pf")
-            nonnormal     = Table_one.nonnormal_variables,
-            showAllLevels = FALSE,
-            formatOptions = list(big.mark = ","),
-            noSpaces      = TRUE
-        )}
+            smd               = TRUE,
+            catDigits         = 1,
+            contDigits        = T1.cdig,
+            format            = c("fp"),
+            # format          = c("fp", "f", "p", "pf")
+            nonnormal         = T1.nvars,
+            showAllLevels     = FALSE,
+            formatOptions     = list(big.mark = ","),
+            noSpaces          = TRUE
+        )
+        }
     else {
-        Table_one.print <- print(
+        T1.print <- print(
             tableone::CreateTableOne(
-                data          = Table_one.analysis_data,
-                vars          = Table_one.all_varibales,
-                strata        = Table_one.group,
-                test          = Table_one.test,
-                factorVars    = Table_one.categorical_variables
+                data          = T1.data,
+                vars          = T1.vars,
+                strata        = T1.group,
+                test          = T1.test,
+                factorVars    = T1.cats
             ),
-            contDigits    = Table_one.contDigits,
-            format        = c("p"),
-            # format        = c("fp", "f", "p", "pf")
-            nonnormal     = Table_one.nonnormal_variables,
-            showAllLevels = FALSE,
-            formatOptions = list(big.mark = ","),
-            noSpaces      = TRUE
+            smd               = TRUE,
+            catDigits         = 1,
+            contDigits        = T1.cdig,
+            format            = c("fp"),
+            # format          = c("fp", "f", "p", "pf")
+            nonnormal         = T1.nvars,
+            showAllLevels     = FALSE,
+            formatOptions     = list(big.mark = ","),
+            noSpaces          = TRUE
         )
     }
-    write.table(Table_one.print,
+    write.table(T1.print,
                 paste0("clipboard-",
-                       formatC(100*100,
-                               format = "f",
-                               digits = 0)
+                formatC(100*100,
+                format        = "f",
+                digits        = 0)
                 ),
-                sep       = "\t",
-                row.names = TRUE,
-                col.names = FALSE,
-                dec       = "."
+                sep           = "\t",
+                row.names     = TRUE,
+                col.names     = FALSE,
+                dec           = "."
                 )
-    DT::datatable(
-        Table_one.print,
-        options = list(
-            paging    = FALSE,
-            searching = FALSE,
-            info      = FALSE
-        ),
-        class   = "display compact"
+    browsable(
+        tagList(
+            tags$style(HTML("
+      body {
+        background-color: black !important;
+        color: white !important;
+      }
+      table.dataTable {
+        background-color: black !important;
+        color: white !important;
+      }
+      table.dataTable td,
+      table.dataTable th {
+        background-color: black !important;
+        color: white !important;
+      }
+    ")),
+     DT::datatable(
+         T1.print,
+         options   = list(
+         paging    = FALSE,
+         searching = FALSE,
+         info      = FALSE
+         ),
+         class     = "display compact"
+        )
     )
+)
 }
 
 ## number of total and event ###################################################
