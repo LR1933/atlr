@@ -558,15 +558,15 @@ fbp <- function(fbp.exposure, fbp.outcome) {
 #' @return
 #' @export
 #'
-#' @examples
-T1 <- function(T1.data,
-               T1.vars,
-               T1.cats,
-               T1.nvars = NULL,
-               T1.group = NULL,
-               T1.cdig  = 1,
-               T1.test  = FALSE
-               ) {
+#' @examples T1 (iris, colnames(iris),"Species","Petal.Length","Species")
+ftone <- function(T1.data,
+                  T1.vars,
+                  T1.cats,
+                  T1.nvars = NULL,
+                  T1.group = NULL,
+                  T1.cdig  = 1,
+                  T1.test  = FALSE
+                  ) {
     if (is.null(T1.group)) {
         T1.print <- print(
             tableone::CreateTableOne(
@@ -617,7 +617,7 @@ T1 <- function(T1.data,
                 col.names     = FALSE,
                 dec           = "."
                 )
-    browsable(
+    htmltools::browsable(
         tagList(
             tags$style(HTML("
       body {
@@ -660,7 +660,7 @@ T1 <- function(T1.data,
 #'           Exposure <- iris$Species
 #' @examples fn(iris$Petal.Length, iris$Species, T, F)
 #' @examples fn(sample(0:1, 150, replace = TRUE), iris$Species, T, T)
-fn　<- function(Event, Exposure, fn.prop = FALSE, fn.test = FALSE){
+fn <- function(Event, Exposure, fn.prop = FALSE, fn.test = FALSE){
       fn.crosstable <- gmodels::CrossTable(
         Event,
         Exposure,
