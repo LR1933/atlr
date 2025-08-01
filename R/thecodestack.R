@@ -334,7 +334,6 @@ fsp <- function(fsp.exposure, fsp.outcome) {
         labs(
             x = as.character(substitute(fsp.xname)),
             y = as.character(substitute(fsp.yname)),
-            title = "Scatter plot"
         ) +
         theme_grey() +
         theme(
