@@ -265,7 +265,7 @@ fdp <- function(fdp.exposure, fdp.binwidth =1) {
 #' @export
 #'
 #' @examples fsp(iris$Sepal.Length, iris$Petal.Width)
-fsp <- function(fsp.exposure, fsp.outcome) {
+fsp <- function(fsp.exposure, fsp.outcome, group = NULL) {
     if (!is.numeric(fsp.exposure) || !is.numeric(fsp.outcome)) {
         stop("Inputed values must be numeric.")
     }
@@ -309,8 +309,8 @@ fsp <- function(fsp.exposure, fsp.outcome) {
                          value = "value",
                          c("linear", "rcs3", "rcs4", "rcs5"))
     fsp.plot <- ggplot(fsp.gather,
-                       aes_string(x = "fsp.data.exposure",
-                                  y = "fsp.data.outcome")) +
+                       aes_string(x    = "fsp.data.exposure",
+                                  y    = "fsp.data.outcome")) +
         geom_point(size = 0.5) +
         geom_line(aes(
             x        = fsp.data.exposure,
