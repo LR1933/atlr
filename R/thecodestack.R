@@ -336,7 +336,7 @@ fsp <- function(fsp.exposure, fsp.outcome) {
             y = as.character(substitute(fsp.yname)),
             title = "Scatter plot"
         ) +
-        theme_minimal() +
+        theme_grey() +
         theme(
             plot.title       = element_text(
                 family       = "Times",
@@ -562,7 +562,7 @@ fbp <- function(fbp.exposure, fbp.outcome) {
         x     = as.character(substitute(fbp.xname)),
         y     = as.character(substitute(fbp.yname))
     ) +
-        theme_classic() +
+        theme_grey() +
         theme(
             axis.text.x  = element_text(size = 10, colour = "black"),
             axis.title.x = element_blank(),
