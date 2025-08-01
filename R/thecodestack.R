@@ -223,6 +223,38 @@ cat("\n")
     return(fs.table)
 }
 
+## frequency plot ##############################################################
+#' Title
+#'
+#' @param fdp.exposure
+#' @param fdp.binwidth
+#'
+#' @return
+#' @export
+#'
+#' @examples fdp(iris$Sepal.Width,0.1)
+fdp <- function(fdp.exposure, fdp.binwidth =1) {
+  if (!is.numeric(fdp.exposure) || length(fdp.exposure) <= 10) {
+    stop("Input error: Data must be a numeric vector with multiple numbers ( > 10 ).")
+  }
+  ggplot() +
+    geom_histogram(
+      aes(x = fdp.exposure, y = after_stat(density)),
+      color = "white",
+      binwidth = fdp.binwidth
+    ) +
+    geom_density(aes(x = fdp.exposure), color = "grey", size = 1) +
+    scale_y_continuous(
+      name = "Density",
+      sec.axis = sec_axis(
+        trans = ~ . * length(fdp.exposure) * fdp.binwidth,
+        name = "Frequency (Count)"
+      )
+    ) +
+    labs(x = deparse(substitute(fdp.exposure))) +
+    theme_grey()
+}
+                                
 ## linear check ################################################################
 #' Title
 #'
