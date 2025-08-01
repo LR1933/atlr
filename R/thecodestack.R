@@ -176,19 +176,20 @@ fd <- function(fd.variable, fd.bar = TRUE) {
 fs <- function(fs.varibale, fs.group = NA, fs.html = FALSE){
     fsd <- data.table(var  = fs.varibale,
                       cat  = fs.group)
-    fs.table  <- fsd[, .(N       = NROW(var),
-                         Sum     = round(sum(var,      na.rm = TRUE), 3),
-                         Mean    = round(mean(var,     na.rm = TRUE), 3),
-                         stdDev  = round(sd(var,       na.rm = TRUE), 3),
-                         Min     = round(min(var,      na.rm = TRUE), 3),
-                         Q25     = round(quantile(var, probs = 0.25,
-                                                       na.rm = TRUE), 3),
-                         Median  = round(median(var,   na.rm = TRUE), 3),
-                         Q75     = round(quantile(var, probs = 0.75,
-                                                       na.rm = TRUE), 3),
-                         Max     = round(max(var,      na.rm = TRUE), 3),
-                         length  = length(unique(var)),
-                         Missing = sum(is.na(var))
+    fs.table  <- fsd[, .(N        = NROW(var),
+                         Sum      = round(sum(var,      na.rm = TRUE), 3),
+                         Mean     = round(mean(var,     na.rm = TRUE), 3),
+                         stdDev   = round(sd(var,       na.rm = TRUE), 3),
+                         Variance = round(var(var,      na.rm = TRUE), 3),
+                         Min      = round(min(var,      na.rm = TRUE), 3),
+                         Q25      = round(quantile(var, probs = 0.25,
+                                                        na.rm = TRUE), 3),
+                         Median   = round(median(var,   na.rm = TRUE), 3),
+                         Q75      = round(quantile(var, probs = 0.75,
+                                                        na.rm = TRUE), 3),
+                         Max      = round(max(var,      na.rm = TRUE), 3),
+                         length   = length(unique(var)),
+                         Missing  = sum(is.na(var))
                          ),
                      keyby = cat]
     fs.table <- as.data.table(fs.table)
