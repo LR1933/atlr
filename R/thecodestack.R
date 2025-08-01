@@ -584,15 +584,15 @@ fbp <- function(fbp.exposure, fbp.outcome) {
 #' @return
 #' @export
 #'
-#' @examples T1 (iris, colnames(iris),"Species","Petal.Length","Species")
-ftone <- function(T1.data,
-                  T1.vars,
-                  T1.cats,
-                  T1.nvars = NULL,
-                  T1.group = NULL,
-                  T1.cdig  = 1,
-                  T1.test  = FALSE
-                  ) {
+#' @examples ft (iris, colnames(iris),"Species","Petal.Length","Species")
+ft <- function(T1.data,
+              T1.vars,
+              T1.cats,
+              T1.nvars = NULL,
+              T1.group = NULL,
+              T1.cdig  = 1,
+              T1.test  = FALSE
+              ) {
     if (is.null(T1.group)) {
         T1.print <- print(
             tableone::CreateTableOne(
