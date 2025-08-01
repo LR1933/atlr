@@ -358,11 +358,6 @@ fsp <- function(fsp.exposure, fsp.outcome) {
                 colour       = "Black",
                 size         = 9
             ),
-            panel.background = element_rect(
-                fill         = "gray99",
-                colour       = "white",
-                linetype     = "twodash"
-            ),
             plot.background  = element_rect(fill = "white")
         )
     print(fsp.plot)
@@ -558,7 +553,6 @@ fbp <- function(fbp.exposure, fbp.outcome) {
     #           fill = "grey70"
     #     ) +
     labs(
-        title = "Boxplot",
         x     = as.character(substitute(fbp.xname)),
         y     = as.character(substitute(fbp.yname))
     ) +
