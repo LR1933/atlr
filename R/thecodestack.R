@@ -137,9 +137,7 @@ fd <- function(fd.variable, fd.bar = TRUE) {
             )
         }
     cat(
-        paste(
         gsub(".*\\$", "", deparse(substitute(fd.variable))),
-        ),
         "\n",
         paste(
             "Type/class of variable: ",
