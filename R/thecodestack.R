@@ -265,7 +265,7 @@ fdp <- function(fdp.exposure, fdp.binwidth =1) {
 #' @export
 #'
 #' @examples fsp(iris$Sepal.Length, iris$Petal.Width)
-fsp <- function(fsp.exposure, fsp.outcome, group = NULL) {
+fsp <- function(fsp.exposure, fsp.outcome) {
     if (!is.numeric(fsp.exposure) || !is.numeric(fsp.outcome)) {
         stop("Inputed values must be numeric.")
     }
