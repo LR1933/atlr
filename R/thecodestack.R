@@ -137,6 +137,9 @@ fd <- function(fd.variable, fd.bar = TRUE) {
             )
         }
     cat(
+        paste(
+        gsub(".*\\$", "", deparse(substitute(fd.variable))),
+        ),
         "\n",
         paste(
             "Type/class of variable: ",
@@ -226,33 +229,37 @@ cat("\n")
 ## frequency plot ##############################################################
 #' Title
 #'
-#' @param fdp.exposure
+#' @param fdp.variable
 #' @param fdp.binwidth
 #'
 #' @return
 #' @export
 #'
 #' @examples fdp(iris$Sepal.Width,0.1)
-fdp <- function(fdp.exposure, fdp.binwidth =1) {
-  if (!is.numeric(fdp.exposure) || length(fdp.exposure) <= 10) {
-    stop("Input error: Data must be a numeric vector with multiple numbers ( > 10 ).")
-  }
-  ggplot() +
-    geom_histogram(
-      aes(x = fdp.exposure, y = after_stat(density)),
-      color = "white",
-      binwidth = fdp.binwidth
-    ) +
-    geom_density(aes(x = fdp.exposure), color = "grey", size = 1) +
-    scale_y_continuous(
-      name = "Density",
-      sec.axis = sec_axis(
-        trans = ~ . * length(fdp.exposure) * fdp.binwidth,
-        name = "Frequency (Count)"
-      )
-    ) +
-   labs(x = gsub(".*\\$", "", deparse(substitute(fdp.exposure)))) +
-    theme_grey()
+fdp <- function(fdp.variable, fdp.binwidth = 1) {
+    if (!is.numeric(fdp.variable) || length(fdp.variable) <= 10) {
+        stop(
+            "Input error: Data must be a numeric vector with multiple numbers ( > 10 )."
+        )
+    }
+    fdp.plot <- ggplot() +
+        geom_histogram(
+            aes(x = fdp.variable, y = after_stat(density)),
+            color = "white",
+            binwidth = fdp.binwidth
+        ) +
+        geom_density(aes(x = fdp.variable), color = "grey", size = 1) +
+        scale_y_continuous(
+            name = "Density",
+            sec.axis = sec_axis(
+                trans = ~ . * length(fdp.variable) * fdp.binwidth,
+                name = "Frequency (Count)"
+            )
+        ) +
+        labs(x = gsub(".*\\$", "", deparse(substitute(fdp.variable)))) +
+        theme_grey()
+    print(fdp.plot)
+    print(fd(fdp.variable, FALSE))
 }
                                 
 ## linear check ################################################################
@@ -333,7 +340,7 @@ fsp <- function(fsp.exposure, fsp.outcome) {
         )) +
         labs(
             x = as.character(substitute(fsp.xname)),
-            y = as.character(substitute(fsp.yname)),
+            y = as.character(substitute(fsp.yname))
         ) +
         theme_grey() +
         theme(
