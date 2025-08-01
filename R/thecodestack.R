@@ -251,7 +251,7 @@ fdp <- function(fdp.exposure, fdp.binwidth =1) {
         name = "Frequency (Count)"
       )
     ) +
-    labs(x = deparse(substitute(fdp.exposure))) +
+   labs(x = gsub(".*\\$", "", deparse(substitute(fdp.exposure)))) +
     theme_grey()
 }
                                 
