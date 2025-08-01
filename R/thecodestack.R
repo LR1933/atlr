@@ -311,7 +311,7 @@ fsp <- function(fsp.exposure, fsp.outcome) {
     fsp.plot <- ggplot(fsp.gather,
                        aes_string(x = "fsp.data.exposure",
                                   y = "fsp.data.outcome")) +
-        geom_point() +
+        geom_point(size = 0.5) +
         geom_line(aes(
             x        = fsp.data.exposure,
             y        = value,
