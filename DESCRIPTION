@@ -1,11 +1,10 @@
 Package: atlr
 Type: A private R package
-Title: A package of miscellaneous R functions
-Version: 2025.08.01
+Title: Miscellaneous R functions
+Version: 2025.08.05
 Author: Lijiaqi
-Description:  A private R package
+Description: Private package
 License: no license
-Depends: tidyverse, tidybayes, DescTools, htmltools,lubridate, tableone, data.table, DT, rms, brms, rmsb,rstan, bayesplot, rstanarm, bayesrules 
+Depends: data.table, tidyverse, tidybayes, DescTools, rms, rmsb, brms, bayesplot
 Encoding: UTF-8
 LazyData: true
-Theme: themes/dark.rstheme
