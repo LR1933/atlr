@@ -772,6 +772,7 @@ fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
       Event,
       Exposure,
       fisher = fpn.test,
+      prop.chisq = fpn.prop,
       prop.t = fpn.prop,
       prop.r = fpn.prop,
       prop.c = fpn.prop
@@ -782,6 +783,7 @@ fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
       Event,
       Exposure,
       fisher = fpn.test,
+      prop.chisq = fpn.prop,
       prop.t = fpn.prop,
       prop.r = fpn.prop,
       prop.c = fpn.prop
