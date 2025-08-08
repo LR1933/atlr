@@ -128,7 +128,7 @@ fdiscrete_var <- function(d, t = 10) {
 
 
 ## frequency and type ##########################################################
-#' Title
+#' Title frequency
 #'
 #' @param fd.variable
 #' @param fd.bar
@@ -239,6 +239,46 @@ fd <- function(fd.variable, fd.html = FALSE, fd.label = NULL) {
         cat("\n")
     }
 }
+
+
+## frequency cross table #######################################################
+#' Title cross table
+#'
+#' @param fdc.variable1
+#' @param fdc.variable2
+#'
+#' @return
+#' @export
+#'
+#' @examples fdc(iris$Species, iris$Sepal.Length)
+fdc <- function(fdc.variable1, fdc.variable2) {
+  fdc.dt <- data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
+    count(v1, v2)
+  fdc.plot <- ggplot(fdc.dt, aes(x = v1, y = v2, fill = n)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = n), color = "black", size = 4) +
+    scale_fill_gradient(low = "lightblue", high = "lightcoral") +
+    labs(
+      x = sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+      y = sub(".*\\$", "", deparse(substitute(fdc.variable2))),
+      fill = "Frenquency"
+    ) +
+    theme_gray()
+
+  fdc.table <- tabyl(fdc.dt, v1, v2) %>%
+    adorn_totals(c("row", "col")) %>%
+    adorn_percentages("row") %>%
+    adorn_pct_formatting(digits = 2) %>%
+    adorn_ns(position = "front")
+    colnames(fdc.table)[1] <- paste0(
+    sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+    " / ",
+    sub(".*\\$", "", deparse(substitute(fdc.variable2)))
+  )
+  print(fdc.plot)
+  print(fdc.table)
+} 
+
 
 ## summary #####################################################################
 #' Title
