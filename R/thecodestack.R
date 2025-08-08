@@ -51,24 +51,35 @@ fcopy <- function(c) {
 #'
 #' @return
 #' @export
-#'
-#' @examples update.J.cal(c("平 5", "令 1.12.12"))
-update.J.cal <- function(J) {
-    J <- gsub(" ", "", J)
+#'           J <- "令 1.12.12"
+#' @examples Jcal(c("平 5", "令 1.12.12", "昭 64.1"))
+Jcal <- function(J) {
     rule <- list(
         list(p = "大", s = 1911, count = 15),
         list(p = "昭", s = 1925, count = 64),
         list(p = "平", s = 1988, count = 31),
         list(p = "令", s = 2018, count = 50)
     )
-    for (y in rule) {
-        old.vals <- paste0("^", y$p, sprintf("%02d", 1:y$count))
-        new.vals <- paste0(y$s + (1:y$count))
-        for (i in 1:y$count) {
-            J <- gsub(old.vals[i], new.vals[i], J)
+    result <- sapply(J, function(x) {
+        o <- gsub(" ", "", x)
+        for (y in rule) {
+            pattern <- paste0("^", y$p, "(\\d+).*")
+            if (grepl(pattern, o)) {
+                a <- sub(pattern, "\\1", o)
+                c <- as.integer(a)
+                if (c > 0 && c <= y$count) {
+                    n <- y$s + c
+                    t <- paste0(y$p, a)
+                    f <- sub(t, n, o)
+                    return(f)
+                }
+            }
         }
-    }
-    return(J)
+        stop(
+            "Input error."
+        )
+    })
+    return(unname(result))
 }
 
 
