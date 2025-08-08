@@ -252,9 +252,8 @@ fd <- function(fd.variable, fd.html = FALSE, fd.label = NULL) {
 #'
 #' @examples fdc(iris$Species, iris$Sepal.Length)
 fdc <- function(fdc.variable1, fdc.variable2) {
-  fdc.dt <- data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
-    count(v1, v2)
-  fdc.plot <- ggplot(fdc.dt, aes(x = v1, y = v2, fill = n)) +
+  fdc.plot <- ggplot(data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
+    count(v1, v2), aes(x = v1, y = v2, fill = n)) +
     geom_tile(color = "white") +
     geom_text(aes(label = n), color = "black", size = 4) +
     scale_fill_gradient(low = "lightblue", high = "lightcoral") +
@@ -265,11 +264,12 @@ fdc <- function(fdc.variable1, fdc.variable2) {
     ) +
     theme_gray()
 
-  fdc.table <- tabyl(fdc.dt, v1, v2) %>%
-    adorn_totals(c("row", "col")) %>%
-    adorn_percentages("row") %>%
-    adorn_pct_formatting(digits = 2) %>%
-    adorn_ns(position = "front")
+  fdc.table <- janitor::tabyl(data.frame(v1 = fdc.variable1, v2 = fdc.variable2), v1, v2) %>%
+    janitor::adorn_totals(c("row", "col")) %>%
+    janitor::adorn_percentages("row") %>%
+    janitor::adorn_pct_formatting(digits = 2) %>%
+    janitor::adorn_ns(position = "front")
+
     colnames(fdc.table)[1] <- paste0(
     sub(".*\\$", "", deparse(substitute(fdc.variable1))),
     " / ",
@@ -753,39 +753,60 @@ ft <- function(
 ## number of total and event ###################################################
 #' Title
 #'
-#' @param fn.event
-#' @param fn.exposure
+#' @param fpn.event
+#' @param fpn.exposure
 #'
 #' @return
 #' @export
 #'
-#'           fn.event <- mtcars$am
-#'           fn.exposure <- mtcars$gear
-#' @examples fn(mtcars$am , mtcars$gear)
-#' @examples fn(mtcars$am , mtcars$gear, T, F)
-#' @examples fn(mtcars$am , mtcars$gear, T, T)
-fn <- function(fn.event, fn.exposure, fn.prop = FALSE, fn.test = FALSE) {
-    if (length(unique(fn.event)) != 2) {
-        stop("Input error:Event must be binary")
-    }
-    Event <- fn.event
-    Exposure <- fn.exposure
-    fn.crosstable <- gmodels::CrossTable(
-        Event,
-        Exposure,
-        fisher = fn.test,
-        prop.t = fn.prop,
-        prop.r = fn.prop,
-        prop.c = fn.prop
+#'           fpn.event <- mtcars$am
+#'           fpn.exposure <- mtcars$gear
+#' @examples fpn(mtcars$am , mtcars$gear)
+#' @examples fpn(mtcars$am , mtcars$gear, T, F)
+#' @examples fpn(mtcars$am , mtcars$gear, T, T)
+fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
+    Event <- fpn.event
+    Exposure <- fpn.exposure
+  if (length(unique(fpn.event)) != 2) {
+    fpn.crosstable <- gmodels::CrossTable(
+      Event,
+      Exposure,
+      fisher = fpn.test,
+      prop.t = fpn.prop,
+      prop.r = fpn.prop,
+      prop.c = fpn.prop
     )
-    fn.table <- as.data.frame(t(data.table(
-        "No. of events" = fn.crosstable$t[2, ],
-        "No. of participants" = fn.crosstable$t[1, ] + fn.crosstable$t[2, ],
-        check.names = FALSE
+    print(fpn.table)
+  } else {
+    fpn.crosstable <- gmodels::CrossTable(
+      Event,
+      Exposure,
+      fisher = fpn.test,
+      prop.t = fpn.prop,
+      prop.r = fpn.prop,
+      prop.c = fpn.prop
+    )
+    fpn.table <- as.data.frame(t(data.table(
+      "No. of events" = fpn.crosstable$t[2, ],
+      "No. of participants" = fpn.crosstable$t[1, ] + fpn.crosstable$t[2, ],
+      check.names = FALSE
     )))
-    colnames(fn.table) <- colnames(fn.crosstable$t)
-    fcopy(fn.table)
-    print(fn.table)
+     colnames(fpn.table) <- colnames(fpn.crosstable$t)
+     fpn.table2 <- data.frame(
+      Category = format(
+        c(
+          sub(".*\\$", "", deparse(substitute(fpn.exposure))),
+          rownames(fpn.table)
+        ),
+        justify = "left"
+      ),
+      rbind(colnames(fpn.table), fpn.table),
+      check.names = FALSE
+    )
+    colnames(fpn.table2) <- NULL
+    print(fpn.table2, row.names = FALSE, quote = FALSE)
+    fcopy(fpn.table)
+  }
 }
 
 
