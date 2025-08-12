@@ -1,3 +1,8 @@
+##【Build a package】###########################################################
+# devtools::load_all() # loading the latest package for testing
+# ctrl+alt+shift+R
+devtools::build()
+
 ## rounding ####################################################################
 #' Title rounding
 #'
@@ -43,6 +48,106 @@ fcopy <- function(c) {
     )
 }
 
+## html view ###################################################################
+#' Title html view
+#'
+#' @param c
+#' @param title
+#' @param backgroundcolor
+#' @param textcolor
+#'
+#' @return
+#' @export
+#'
+#' @examples fhtml(summary(iris$Sepal.Length))
+fhtml <- function(
+    c,
+    title = "Output",
+    backgroundcolor = "black",
+    textcolor = "white"
+) {
+    if (!(inherits(c, "data.frame") || is.matrix(c))) {
+        c <- tibble::enframe(c, name = "name", value = "value")
+    }
+    css <- sprintf(
+        "
+      body {
+        background-color: %s !important;
+        color: %s !important;
+      }
+      table.dataTable {
+        background-color: %s !important;
+        color: %s !important;
+      }
+      table.dataTable td,
+      table.dataTable th {
+        background-color: %s !important;
+        color: %s !important;
+      }
+    ",
+        backgroundcolor,
+        textcolor,
+        backgroundcolor,
+        textcolor,
+        backgroundcolor,
+        textcolor
+    )
+
+    htmltools::browsable(
+        htmltools::tagList(
+            htmltools::tags$title(title),
+            htmltools::tags$style(htmltools::HTML(css)),
+            DT::datatable(
+                c,
+                options = list(
+                    paging = FALSE,
+                    searching = FALSE,
+                    info = FALSE
+                ),
+                class = "display compact"
+            )
+        )
+    )
+}
+
+
+## variable status #############################################################
+#' Title variable status
+#'
+#' @param fv.variable
+#'
+#' @return
+#' @export
+#'
+#' @examples fv(iris$Sepal.Length)
+fv <- function(fv.variable) {
+    cat(
+        paste(
+            "Variable   : ",
+            sub(".*\\$", "", deparse(substitute(fv.variable))),
+            "\n",
+            paste(
+                "Type/class :",
+                typeof(fv.variable),
+                "/",
+                class(fv.variable)
+            ),
+            "\n",
+            paste(
+                "No. zero/missing/null/space-inclusive: ",
+                sum(fv.variable %in% c(0, "0"), na.rm = TRUE),
+                "/",
+                sum(is.na(fv.variable)),
+                "/",
+                sum(sapply(fv.variable, is.null)),
+                "/",
+                sum(grepl(" ", as.character(fv.variable)))
+            ),
+            sep = ""
+        )
+    )
+}
+
 
 ## update Japanese calender ####################################################
 #' Title update Japanese calender
@@ -53,6 +158,7 @@ fcopy <- function(c) {
 #' @export
 #'           J <- "令 1.12.12"
 #' @examples Jcal(c("平 5", "令 1.12.12", "昭 64.1"))
+#' @examples fhtml(Jcal(c("平 5", "令 1.12.12", "昭 64.1")))
 Jcal <- function(J) {
     rule <- list(
         list(p = "大", s = 1911, count = 15),
@@ -92,6 +198,7 @@ Jcal <- function(J) {
 #' @export
 #'
 #' @examples fgmean(iris$Sepal.Length)
+#' @examples fhtml(fgmean(iris$Sepal.Length))
 # expmean(log(x))) # geometric mean
 # exp(sum(log(x)/length(x)) # geometric mean
 # exp(mean(log(x)))
@@ -131,113 +238,40 @@ fdiscrete_var <- function(d, t = 10) {
 #' Title frequency
 #'
 #' @param fd.variable
-#' @param fd.bar
-#' @param fd.label
 #'
 #' @return
 #' @export
 #'
 #' @examples fd(iris$Sepal.Length)
-#' @examples fd(iris$Sepal.Length,T)
-fd <- function(fd.variable, fd.html = FALSE, fd.label = NULL) {
-    fd.variable.label <- if (is.null(fd.label)) {
-        sub(".*\\$", "", deparse(substitute(fd.variable)))
-    } else {
-        fd.label
+#' @examples fd(iris$Species)
+#' @examples fhtml(fd(iris$Sepal.Length))
+fd <- function(fd.variable) {
+    fd.variable.label <- sub(".*\\$", "", deparse(substitute(fd.variable)))
+    fd.factor <- factor(fd.variable, exclude = NULL)
+    freq_tab <- as.data.frame(table(fd.factor, useNA = "ifany"))
+    colnames(freq_tab) <- c("Value", "Frequency")
+    total_count <- sum(freq_tab$Frequency)
+    freq_tab$Percent <- round(freq_tab$Frequency / total_count * 100, 2)
+    freq_tab$CumFrequency <- cumsum(freq_tab$Frequency)
+    freq_tab$CumPercent <- round(cumsum(freq_tab$Percent), 2)
+    show_bar_values <- nlevels(fd.factor) <= 10
+    all_labels <- freq_tab$Value
+    n <- length(all_labels)
+    step <- max(1, floor(n / 10))
+    displayed_labels <- all_labels[seq(1, n, by = step)]
+    p <- ggplot(freq_tab, aes(x = Value, y = Frequency)) +
+        geom_bar(stat = "identity", fill = "black") +
+        labs(
+            x = paste(fd.variable.label, "values"),
+            y = "Frequency"
+        ) +
+        theme_grey() +
+        scale_x_discrete(breaks = displayed_labels)
+    if (show_bar_values) {
+        p <- p + geom_text(aes(label = Frequency), vjust = -0.5, size = 5)
     }
-    if (nlevels(as.factor(fd.variable)) <= 10) {
-        fd.table <-
-            epiDisplay::tab1(
-                fd.variable,
-                graph = TRUE,
-                missing = TRUE,
-                bar.values = "frequency",
-                cex = 1,
-                cex.names = 1,
-                main = paste(
-                    "Frequency distribution for",
-                    fd.variable.label
-                ),
-                xlab = paste(fd.variable.label, "values"),
-                ylab = "Frequency",
-                col = "gray25"
-            )
-    } else {
-        fd.table <-
-            epiDisplay::tab1(
-                fd.variable,
-                graph = TRUE,
-                missing = TRUE,
-                bar.values = 0,
-                cex = 1,
-                cex.names = 1,
-                main = paste(
-                    "Frequency distribution for",
-                    fd.variable.label
-                ),
-                xlab = paste(fd.variable.label, "values"),
-                ylab = "Frequency",
-                col = "gray25"
-            )
-    }
-    print(fd.table)
-    cat(
-        "\n",
-        paste(
-            "Variable   : ",
-            fd.variable.label
-        ),
-        "\n",
-        paste(
-            "Type/class : ",
-            typeof(fd.variable),
-            "/",
-            class(fd.variable)
-        ),
-        "\n",
-        paste(
-            "No. zero/missing/null/space-inclusive: ",
-            sum(fd.variable %in% c(0, "0"), na.rm = TRUE),
-            "/",
-            sum(is.na(fd.variable)),
-            "/",
-            sum(is.null(fd.variable)),
-            "/",
-            sum(grepl(" ", fd.variable))
-        ),
-        sep = ""
-    )
-    if (fd.html) {
-        fd.table <- as.data.table(fd.table)
-        colnames(fd.table) <- c("null", "Frequency", "Percent", "Cum. percent")
-        print(DT::datatable(
-            fd.table[, 2:4],
-            options = list(
-                paging = FALSE,
-                searching = FALSE,
-                info = FALSE
-            ),
-            rownames = FALSE,
-            class = "display compact",
-            caption = htmltools::tags$caption(
-                style = "caption-side: bottom;
-                                         text-align: left;
-                                         color: black;
-                                         font-size: 14px;",
-                paste0(
-                    "Varibale: ",
-                    fd.variable.label,
-                    "\n"
-                )
-            )
-        ))
-        cat(paste0(
-            "Varibale: ",
-            fd.variable.label,
-            "\n"
-        ))
-        cat("\n")
-    }
+    print(p)
+    return(freq_tab)
 }
 
 
@@ -251,33 +285,41 @@ fd <- function(fd.variable, fd.html = FALSE, fd.label = NULL) {
 #' @export
 #'
 #' @examples fdc(iris$Species, iris$Sepal.Length)
+#' @examples fhtml(fdc(iris$Species, iris$Sepal.Length))
 fdc <- function(fdc.variable1, fdc.variable2) {
-  fdc.plot <- ggplot(data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
-    count(v1, v2), aes(x = v1, y = v2, fill = n)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = n), color = "black", size = 4) +
-    scale_fill_gradient(low = "lightblue", high = "lightcoral") +
-    labs(
-      x = sub(".*\\$", "", deparse(substitute(fdc.variable1))),
-      y = sub(".*\\$", "", deparse(substitute(fdc.variable2))),
-      fill = "Frenquency"
+    fdc.plot <- ggplot(
+        data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
+            count(v1, v2),
+        aes(x = v1, y = v2, fill = n)
     ) +
-    theme_gray()
+        geom_tile(color = "white") +
+        geom_text(aes(label = n), color = "black", size = 4) +
+        scale_fill_gradient(low = "lightblue", high = "lightcoral") +
+        labs(
+            x = sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+            y = sub(".*\\$", "", deparse(substitute(fdc.variable2))),
+            fill = "Frenquency"
+        ) +
+        theme_gray()
 
-  fdc.table <- janitor::tabyl(data.frame(v1 = fdc.variable1, v2 = fdc.variable2), v1, v2) %>%
-    janitor::adorn_totals(c("row", "col")) %>%
-    janitor::adorn_percentages("row") %>%
-    janitor::adorn_pct_formatting(digits = 2) %>%
-    janitor::adorn_ns(position = "front")
+    fdc.table <- janitor::tabyl(
+        data.frame(v1 = fdc.variable1, v2 = fdc.variable2),
+        v1,
+        v2
+    ) %>%
+        janitor::adorn_totals(c("row", "col")) %>%
+        janitor::adorn_percentages("row") %>%
+        janitor::adorn_pct_formatting(digits = 2) %>%
+        janitor::adorn_ns(position = "front")
 
     colnames(fdc.table)[1] <- paste0(
-    sub(".*\\$", "", deparse(substitute(fdc.variable1))),
-    " / ",
-    sub(".*\\$", "", deparse(substitute(fdc.variable2)))
-  )
-  print(fdc.plot)
-  print(fdc.table)
-} 
+        sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+        " / ",
+        sub(".*\\$", "", deparse(substitute(fdc.variable2)))
+    )
+    print(fdc.plot)
+    print(fdc.table)
+}
 
 
 ## summary #####################################################################
@@ -708,48 +750,10 @@ ft <- function(
             noSpaces = TRUE
         )
     }
-    write.table(
-        ft.print,
-        paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
-        sep = "\t",
-        row.names = TRUE,
-        col.names = FALSE,
-        dec = "."
-    )
-    if (ft.html) {
-        htmltools::browsable(
-            htmltools::tagList(
-                htmltools::tags$style(htmltools::HTML(
-                    "
-      body {
-        background-color: black !important;
-        color: white !important;
-      }
-      table.dataTable {
-        background-color: black !important;
-        color: white !important;
-      }
-      table.dataTable td,
-      table.dataTable th {
-        background-color: black !important;
-        color: white !important;
-      }
-    "
-                )),
-                DT::datatable(
-                    ft.print,
-                    options = list(
-                        paging = FALSE,
-                        searching = FALSE,
-                        info = FALSE
-                    ),
-                    class = "display compact"
-                )
-            )
-        )
-    }
+    fcopy(ft.print)
+    return(ft.print)
 }
-
+if (ft.html) {}
 ## number of total and event ###################################################
 #' Title
 #'
@@ -767,48 +771,49 @@ ft <- function(
 fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
     Event <- fpn.event
     Exposure <- fpn.exposure
-  if (length(unique(fpn.event)) != 2) {
-    fpn.crosstable <- gmodels::CrossTable(
-      Event,
-      Exposure,
-      fisher = fpn.test,
-      prop.chisq = fpn.prop,
-      prop.t = fpn.prop,
-      prop.r = fpn.prop,
-      prop.c = fpn.prop
-    )
-    print(fpn.table)
-  } else {
-    fpn.crosstable <- gmodels::CrossTable(
-      Event,
-      Exposure,
-      fisher = fpn.test,
-      prop.chisq = fpn.prop,
-      prop.t = fpn.prop,
-      prop.r = fpn.prop,
-      prop.c = fpn.prop
-    )
-    fpn.table <- as.data.frame(t(data.table(
-      "No. of events" = fpn.crosstable$t[2, ],
-      "No. of participants" = fpn.crosstable$t[1, ] + fpn.crosstable$t[2, ],
-      check.names = FALSE
-    )))
-     colnames(fpn.table) <- colnames(fpn.crosstable$t)
-     fpn.table2 <- data.frame(
-      Category = format(
-        c(
-          sub(".*\\$", "", deparse(substitute(fpn.exposure))),
-          rownames(fpn.table)
-        ),
-        justify = "left"
-      ),
-      rbind(colnames(fpn.table), fpn.table),
-      check.names = FALSE
-    )
-    colnames(fpn.table2) <- NULL
-    print(fpn.table2, row.names = FALSE, quote = FALSE)
-    fcopy(fpn.table)
-  }
+    if (length(unique(fpn.event)) != 2) {
+        fpn.crosstable <- gmodels::CrossTable(
+            Event,
+            Exposure,
+            fisher = fpn.test,
+            prop.chisq = fpn.prop,
+            prop.t = fpn.prop,
+            prop.r = fpn.prop,
+            prop.c = fpn.prop
+        )
+        print(fpn.table)
+    } else {
+        fpn.crosstable <- gmodels::CrossTable(
+            Event,
+            Exposure,
+            fisher = fpn.test,
+            prop.chisq = fpn.prop,
+            prop.t = fpn.prop,
+            prop.r = fpn.prop,
+            prop.c = fpn.prop
+        )
+        fpn.table <- as.data.frame(t(data.table(
+            "No. of events" = fpn.crosstable$t[2, ],
+            "No. of participants" = fpn.crosstable$t[1, ] +
+                fpn.crosstable$t[2, ],
+            check.names = FALSE
+        )))
+        colnames(fpn.table) <- colnames(fpn.crosstable$t)
+        fpn.table2 <- data.frame(
+            Category = format(
+                c(
+                    sub(".*\\$", "", deparse(substitute(fpn.exposure))),
+                    rownames(fpn.table)
+                ),
+                justify = "left"
+            ),
+            rbind(colnames(fpn.table), fpn.table),
+            check.names = FALSE
+        )
+        colnames(fpn.table2) <- NULL
+        print(fpn.table2, row.names = FALSE, quote = FALSE)
+        fcopy(fpn.table)
+    }
 }
 
 
@@ -1389,9 +1394,3 @@ fe <- function(fe.fit, fe.var = NULL, n = 2) {
         stop("Error: input except fit or summary.rms; check function.")
     }
 }
-
-
-##【Build a package】###########################################################
-# devtools::load_all() # loading the latest package for testing
-# ctrl+alt+shift+R
-devtools::build()
