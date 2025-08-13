@@ -1,17 +1,19 @@
 ##【Build a package】###########################################################
-# devtools::load_all() # loading the latest package for testing
-# ctrl+alt+shift+R
-devtools::build()
+# devtools::load_all()
+# devtools::build()
+# devtools::document()
+# devtools::check()
+require(data.table)
+require(ggplot2)
+require(dplyr)
+require(rms)
 
 ## rounding ####################################################################
 #' Title rounding
-#'
 #' @param d
 #' @param n
-#'
 #' @return
 #' @export
-#'
 #' @examples fround(4.5, 0);round(4.5, 0)
 fround <- function(d, n) {
     s <- sign(d)
@@ -21,14 +23,12 @@ fround <- function(d, n) {
     return(s * d / 10^n)
 }
 
+
 ## copy ########################################################################
 #' Title copy
-#'
 #' @param c
-#'
 #' @return
 #' @export
-#'
 #' @examples fcopy(iris$Sepal.Length)
 fcopy <- function(c) {
     write.table(
@@ -48,26 +48,24 @@ fcopy <- function(c) {
     )
 }
 
-## html view ###################################################################
+
+## html ########################################################################
 #' Title html view
-#'
 #' @param c
 #' @param title
 #' @param backgroundcolor
 #' @param textcolor
-#'
 #' @return
 #' @export
-#'
 #' @examples fhtml(summary(iris$Sepal.Length))
 fhtml <- function(
-    c,
+    h,
     title = "Output",
     backgroundcolor = "black",
     textcolor = "white"
 ) {
-    if (!(inherits(c, "data.frame") || is.matrix(c))) {
-        c <- tibble::enframe(c, name = "name", value = "value")
+    if (!(inherits(h, "data.frame") || is.matrix(h))) {
+        h <- tibble::enframe(h, name = "name", value = "value")
     }
     css <- sprintf(
         "
@@ -98,7 +96,7 @@ fhtml <- function(
             htmltools::tags$title(title),
             htmltools::tags$style(htmltools::HTML(css)),
             DT::datatable(
-                c,
+                h,
                 options = list(
                     paging = FALSE,
                     searching = FALSE,
@@ -111,49 +109,34 @@ fhtml <- function(
 }
 
 
-## variable status #############################################################
-#' Title variable status
-#'
-#' @param fv.variable
-#'
-#' @return
+## judge discrete variables #####################################################
+#' judge discrete variables
+#' @param d
+#' @param t
+#' @return judge discrete variables
 #' @export
-#'
-#' @examples fv(iris$Sepal.Length)
-fv <- function(fv.variable) {
-    cat(
-        paste(
-            "Variable   : ",
-            sub(".*\\$", "", deparse(substitute(fv.variable))),
-            "\n",
-            paste(
-                "Type/class :",
-                typeof(fv.variable),
-                "/",
-                class(fv.variable)
-            ),
-            "\n",
-            paste(
-                "No. zero/missing/null/space-inclusive: ",
-                sum(fv.variable %in% c(0, "0"), na.rm = TRUE),
-                "/",
-                sum(is.na(fv.variable)),
-                "/",
-                sum(sapply(fv.variable, is.null)),
-                "/",
-                sum(grepl(" ", as.character(fv.variable)))
-            ),
-            sep = ""
-        )
-    )
+#' @examples fdiscrete_var(iris$Sepal.Length)
+#' @examples fdiscrete_var(cars$dist)
+fdiscrete_var <- function(d, t = 10) {
+    if (is.factor(d) || is.character(d)) {
+        return(TRUE)
+    }
+    if (is.numeric(d)) {
+        u <- unique(d)
+        if (length(u) <= t) {
+            return(TRUE)
+        }
+        if (all(abs(u - round(u)) < .Machine$double.eps^0.5)) {
+            return(TRUE)
+        }
+    }
+    return(FALSE)
 }
 
 
 ## update Japanese calender ####################################################
 #' Title update Japanese calender
-#'
 #' @param J
-#'
 #' @return
 #' @export
 #'           J <- "令 1.12.12"
@@ -191,12 +174,9 @@ Jcal <- function(J) {
 
 ## geometric mean ##############################################################
 #' geometric mean
-#'
 #' @param g
-#'
 #' @return geometric mean
 #' @export
-#'
 #' @examples fgmean(iris$Sepal.Length)
 #' @examples fhtml(fgmean(iris$Sepal.Length))
 # expmean(log(x))) # geometric mean
@@ -206,142 +186,80 @@ fgmean <- function(g) {
     exp(mean(log(g)))
 }
 
-## judge discrete variables #####################################################
-#' judge discrete variables
-#'
-#' @param d
-#' @param t
-#'
-#' @return judge discrete variables
-#' @export
-#'
-#' @examples fdiscrete_var(iris$Sepal.Length)
-#' @examples fdiscrete_var(cars$dist)
-fdiscrete_var <- function(d, t = 10) {
-    if (is.factor(d) || is.character(d)) {
-        return(TRUE)
-    }
-    if (is.numeric(d)) {
-        u <- unique(d)
-        if (length(u) <= t) {
-            return(TRUE)
-        }
-        if (all(abs(u - round(u)) < .Machine$double.eps^0.5)) {
-            return(TRUE)
-        }
-    }
-    return(FALSE)
-}
 
-
-## frequency and type ##########################################################
-#' Title frequency
-#'
-#' @param fd.variable
-#'
+## variable status #############################################################
+#' Title variable status
+#' @param fv.variable
 #' @return
 #' @export
-#'
-#' @examples fd(iris$Sepal.Length)
-#' @examples fd(iris$Species)
-#' @examples fhtml(fd(iris$Sepal.Length))
-fd <- function(fd.variable) {
-    fd.variable.label <- sub(".*\\$", "", deparse(substitute(fd.variable)))
-    fd.factor <- factor(fd.variable, exclude = NULL)
-    freq_tab <- as.data.frame(table(fd.factor, useNA = "ifany"))
-    colnames(freq_tab) <- c("Value", "Frequency")
-    total_count <- sum(freq_tab$Frequency)
-    freq_tab$Percent <- round(freq_tab$Frequency / total_count * 100, 2)
-    freq_tab$CumFrequency <- cumsum(freq_tab$Frequency)
-    freq_tab$CumPercent <- round(cumsum(freq_tab$Percent), 2)
-    show_bar_values <- nlevels(fd.factor) <= 10
-    all_labels <- freq_tab$Value
-    n <- length(all_labels)
-    step <- max(1, floor(n / 10))
-    displayed_labels <- all_labels[seq(1, n, by = step)]
-    p <- ggplot(freq_tab, aes(x = Value, y = Frequency)) +
-        geom_bar(stat = "identity", fill = "black") +
-        labs(
-            x = paste(fd.variable.label, "values"),
-            y = "Frequency"
-        ) +
-        theme_grey() +
-        scale_x_discrete(breaks = displayed_labels)
-    if (show_bar_values) {
-        p <- p + geom_text(aes(label = Frequency), vjust = -0.5, size = 5)
-    }
-    print(p)
-    return(freq_tab)
-}
-
-
-## frequency cross table #######################################################
-#' Title cross table
-#'
-#' @param fdc.variable1
-#' @param fdc.variable2
-#'
-#' @return
-#' @export
-#'
-#' @examples fdc(iris$Species, iris$Sepal.Length)
-#' @examples fhtml(fdc(iris$Species, iris$Sepal.Length))
-fdc <- function(fdc.variable1, fdc.variable2) {
-    fdc.plot <- ggplot(
-        data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
-            count(v1, v2),
-        aes(x = v1, y = v2, fill = n)
-    ) +
-        geom_tile(color = "white") +
-        geom_text(aes(label = n), color = "black", size = 4) +
-        scale_fill_gradient(low = "lightblue", high = "lightcoral") +
-        labs(
-            x = sub(".*\\$", "", deparse(substitute(fdc.variable1))),
-            y = sub(".*\\$", "", deparse(substitute(fdc.variable2))),
-            fill = "Frenquency"
-        ) +
-        theme_gray()
-
-    fdc.table <- janitor::tabyl(
-        data.frame(v1 = fdc.variable1, v2 = fdc.variable2),
-        v1,
-        v2
-    ) %>%
-        janitor::adorn_totals(c("row", "col")) %>%
-        janitor::adorn_percentages("row") %>%
-        janitor::adorn_pct_formatting(digits = 2) %>%
-        janitor::adorn_ns(position = "front")
-
-    colnames(fdc.table)[1] <- paste0(
-        sub(".*\\$", "", deparse(substitute(fdc.variable1))),
-        " / ",
-        sub(".*\\$", "", deparse(substitute(fdc.variable2)))
+#' @examples fv(iris$Sepal.Length)
+#' @examples fhtml(fv(iris$Sepal.Length))
+fv <- function(fv.variable) {
+    name <- sub(".*\\$", "", deparse(substitute(fv.variable)))
+    class <- paste(class(fv.variable), collapse = ", ")
+    type <- typeof(fv.variable)
+    n <- length(fv.variable)
+    unique <- length(unique(fv.variable))
+    char <- as.character(fv.variable)
+    na <- sum(is.na(fv.variable))
+    zero <- sum(char %in% c("0"), na.rm = TRUE)
+    empty <- sum(char == "", na.rm = TRUE)
+    whitespace <- sum(grepl("^\\s+$", char), na.rm = TRUE)
+    containsspace <- sum(grepl(" ", char), na.rm = TRUE)
+    i <- data.frame(
+        Metric = c(
+            "N",
+            "type",
+            "Class",
+            "zero values",
+            "Empty strings",
+            "Unique values",
+            "Missing values",
+            "Whitespace-only",
+            "Containing spaces"
+        ),
+        Value = c(
+            n,
+            type,
+            class,
+            zero,
+            empty,
+            unique,
+            na,
+            whitespace,
+            containsspace
+        ),
+        stringsAsFactors = FALSE
     )
-    print(fdc.plot)
-    print(fdc.table)
+    names(i)[1] <- name
+    i$Percent <- ""
+    r <- c(4:9)
+    v <- as.numeric(i$Value[r])
+    if (n > 0) {
+        p <- paste0(round(v / n * 100, 2), "%")
+    } else {
+        p <- "0.00%"
+    }
+    i$Percent[r] <- p
+    print(knitr::kable(i, align = 'l'))
+    invisible(i)
 }
 
 
 ## summary #####################################################################
 #' Title
-#'
 #' @param fs.varibale
 #' @param fs.group
-#'
 #' @return
 #' @export
-#'
 #'            fs.varibale <- iris$Sepal.Length
 #'            fs.group <- iris$Species
 #' @examples  fs(iris$Sepal.Length, iris$Species)
 #' @examples  fs(iris$Sepal.Length)
-#' @examples  fs(iris$Sepal.Length, iris$Species, T)
-fs <- function(fs.varibale, fs.group = NA, fs.html = FALSE, fs.label = NULL) {
-    fs.variable.label <- if (is.null(fs.label)) {
-        sub(".*\\$", "", deparse(substitute(fs.varibale)))
-    } else {
-        fs.label
-    }
+#' @examples  fhtml(fs(iris$Sepal.Length, iris$Species))
+fs <- function(fs.varibale, fs.group = NA) {
+    label <- sub(".*\\$", "", deparse(substitute(fs.varibale)))
+
     fsd <- data.table(var = fs.varibale, cat = fs.group)
     fs.table <- fsd[,
         .(
@@ -365,100 +283,159 @@ fs <- function(fs.varibale, fs.group = NA, fs.html = FALSE, fs.label = NULL) {
         fs.table <- fs.table[, -1, with = FALSE]
     }
     if (any(!is.na(fs.group))) {
-        setnames(fs.table, 1, fs.variable.label)
-    }
-    if (fs.html) {
-        print(DT::datatable(
-            fs.table,
-            options = list(
-                paging = FALSE,
-                searching = FALSE,
-                info = FALSE
-            ),
-            rownames = FALSE,
-            class = "display compact",
-            caption = htmltools::tags$caption(
-                style = "caption-side: bottom;
-                                         text-align: left;
-                                         color: black;
-                                         font-size: 14px;",
-                paste0(
-                    "Varibale: ",
-                    fs.variable.label,
-                    "\n"
-                )
-            )
-        ))
-        cat(paste0(
-            "Varibale: ",
-            fs.variable.label,
-            "\n"
-        ))
-        cat("\n")
+        setnames(fs.table, 1, label)
     }
     return(fs.table)
 }
 
-## frequency plot ##############################################################
-#' Title
-#'
-#' @param fdp.variable
-#' @param fdp.binwidth
-#'
+
+## frequency and type ##########################################################
+#' Title frequency
+#' @param fd.variable
 #' @return
 #' @export
-#'
+#' @examples fd(iris$Sepal.Length)
+#' @examples fd(iris$Species)
+#' @examples fhtml(fd(iris$Sepal.Length))
+fd <- function(fd.variable, plot = TRUE) {
+    label <- sub(".*\\$", "", deparse(substitute(fd.variable)))
+    f <- factor(fd.variable, exclude = NULL)
+    df <- as.data.frame(table(f, useNA = "ifany"))
+    colnames(df) <- c("Values", "Frequency")
+    df$Percent <- round(df$Frequency / sum(df$Frequency) * 100, 2)
+    df$CumFrequency <- cumsum(df$Frequency)
+    df$CumPercent <- round(cumsum(df$Percent), 2)
+    p <- ggplot(df, aes(x = Values, y = Frequency)) +
+        geom_bar(stat = "identity", fill = "black") +
+        labs(
+            title = label,
+            x = "",
+            y = ""
+        ) +
+        theme_grey() +
+        theme(
+            axis.title = element_text(size = 10),
+            axis.text = element_text(size = 10)
+        ) +
+        scale_x_discrete(
+            breaks = df$Values[seq(
+                1,
+                length(df$Values),
+                by = max(1, floor(length(df$Values) / 10))
+            )]
+        )
+    if (nlevels(f) <= 10) {
+        p <- p + geom_text(aes(label = Frequency), vjust = -0.5, size = 5)
+    }
+    if (plot) {
+        print(p)
+    }
+    print(df)
+}
+
+
+## frequency cross table #######################################################
+#' Title cross table
+#' @param fdc.variable1
+#' @param fdc.variable2
+#' @return
+#' @export
+#' @examples fdc(iris$Species, iris$Sepal.Length)
+#' @examples fhtml(fdc(iris$Species, iris$Sepal.Length))
+fdc <- function(fdc.variable1, fdc.variable2) {
+    p <- ggplot(
+        data.frame(v1 = fdc.variable1, v2 = fdc.variable2) %>%
+            count(v1, v2),
+        aes(x = v1, y = v2, fill = n)
+    ) +
+        geom_tile(color = "white") +
+        geom_text(aes(label = n), color = "black", size = 4) +
+        scale_fill_gradient(low = "lightblue", high = "lightcoral") +
+        labs(
+            x = sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+            y = sub(".*\\$", "", deparse(substitute(fdc.variable2))),
+            fill = "Frenquency"
+        ) +
+        theme_gray()
+
+    t <- janitor::tabyl(
+        data.frame(v1 = fdc.variable1, v2 = fdc.variable2),
+        v1,
+        v2
+    ) %>%
+        janitor::adorn_totals(c("row", "col")) %>%
+        janitor::adorn_percentages("row") %>%
+        janitor::adorn_pct_formatting(digits = 2) %>%
+        janitor::adorn_ns(position = "front")
+
+    colnames(t)[1] <- paste0(
+        sub(".*\\$", "", deparse(substitute(fdc.variable1))),
+        "/",
+        sub(".*\\$", "", deparse(substitute(fdc.variable2)))
+    )
+    print(p)
+    print(t)
+}
+
+
+## frequency plot ##############################################################
+#' Title
+#' @param fdp.variable
+#' @param fdp.binwidth
+#' @return
+#' @export
 #'           fdp.variable <- iris$Sepal.Width
-#' @examples fdp(iris$Sepal.Width,0.1)
-#' @examples fdp(cars$dist,10)
+#' @examples fdp(iris$Sepal.Width)
+#' @examples fhtml(fdp(iris$Sepal.Width))
+#' @examples fdp(cars$dist)
+#' @examples fhtml(fdp(cars$dist))
 fdp <- function(fdp.variable, fdp.binwidth = 1) {
     if (!is.numeric(fdp.variable) || length(fdp.variable) <= 10) {
         stop(
             "Input error: Data must be a numeric vector with multiple numbers ( > 10 )."
         )
     }
-    fdp.label <- gsub(".*\\$", "", deparse(substitute(fdp.variable)))
+    label <- gsub(".*\\$", "", deparse(substitute(fdp.variable)))
     if (fdiscrete_var(fdp.variable)) {
         fdp.plot <- ggplot() +
             geom_histogram(
                 aes(x = fdp.variable),
                 color = "white",
-                binwidth = fdp.binwidth
+                bins = 30
             ) +
-            labs(x = fdp.label, y = "Frequency") +
+            labs(x = label) +
             theme_grey()
     } else {
         fdp.plot <- ggplot() +
             geom_histogram(
                 aes(x = fdp.variable, y = after_stat(density)),
                 color = "white",
-                binwidth = fdp.binwidth
+                bins = 30
             ) +
             geom_density(aes(x = fdp.variable), color = "grey", size = 1) +
             scale_y_continuous(
                 name = "Density",
                 sec.axis = sec_axis(
-                    trans = ~ . * length(fdp.variable) * fdp.binwidth,
+                    trans = ~ . * length(fdp.variable),
                     name = "Frequency"
                 )
             ) +
-            labs(x = fdp.label) +
+            labs(x = label) +
             theme_grey()
     }
-    fd(fdp.variable, FALSE, fd.label = fdp.label)
     print(fdp.plot)
+    return(fd(fdp.variable, plot = FALSE))
 }
+
 
 ## linear check ################################################################
 #' Title
-#'
 #' @param fsp.x
 #' @param fsp.y
-#'
 #' @return
 #' @export
-#'
 #' @examples fsp(iris$Sepal.Length, iris$Petal.Width)
+#' @examples fhtml(fsp(iris$Sepal.Length, iris$Petal.Width))
 fsp <- function(fsp.exposure, fsp.y) {
     if (!is.numeric(fsp.exposure) || !is.numeric(fsp.y)) {
         stop("Input error: Inputed values must be numeric.")
@@ -486,14 +463,14 @@ fsp <- function(fsp.exposure, fsp.y) {
     } else {
         stop("Input error: Y must be multivalued (>10).")
     }
-    fsp.gather <- tidyr::gather(
+    g <- tidyr::gather(
         fsp.data,
         key = "model",
         value = "value",
         c("linear", "rcs3", "rcs4", "rcs5")
     )
-    fsp.plot <- ggplot(
-        fsp.gather,
+    p <- ggplot(
+        g,
         aes(x = fsp.data.exposure, y = fsp.data.y)
     ) +
         geom_point(size = 0.5) +
@@ -517,62 +494,47 @@ fsp <- function(fsp.exposure, fsp.y) {
         scale_linetype_manual(
             values = c(
                 "linear" = "solid",
-                "rcs3" = "dashed",
-                "rcs4" = "dashed",
-                "rcs5" = "dashed"
+                "rcs3" = "solid",
+                "rcs4" = "solid",
+                "rcs5" = "solid"
             )
         ) +
         labs(
+            title = paste0(
+                "y = ",
+                round(coef(fsp.fitlinear)[1], 2),
+                " + ",
+                round(coef(fsp.fitlinear)[2], 2),
+                "x"
+            ),
             x = as.character(substitute(fsp.xname)),
             y = as.character(substitute(fsp.yname))
         ) +
         theme_grey() +
         theme(
-            plot.title = element_text(
-                family = "Times",
-                size = 11,
-                face = "bold"
-            ),
-            plot.subtitle = element_text(vjust = 1),
-            plot.caption = element_text(vjust = 1),
-            axis.line = element_line(linewidth = 0.5, linetype = "solid"),
-            panel.grid.major = element_line(colour = "white"),
-            axis.title = element_text(
-                family = "Times",
-                colour = "Black",
-                size = 9
-            ),
-            axis.text = element_text(
-                family = "Times",
-                colour = "Black",
-                size = 9
-            ),
-            plot.background = element_rect(fill = "white")
+            plot.title = element_text(size = 20),
+            axis.title = element_text(size = 10),
+            axis.text = element_text(size = 10)
         )
-    print(fsp.plot)
-
-    results_df <- data.table(
+    t <- data.table(
         Model = c(
             "linear",
             "rcs with 3 konts",
             "rcs with 4 konts",
             "rcs with 5 konts"
         ),
-
         R2 = c(
             round(fsp.fitlinear$stats["R2"], 3),
             round(fsp.fit3$stats["R2"], 3),
             round(fsp.fit4$stats["R2"], 3),
             round(fsp.fit5$stats["R2"], 3)
         ),
-
         MAE = c(
             round(mean(abs(fsp.data$fsp.data.y - fsp.data$linear)), 3),
             round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs3)), 3),
             round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs4)), 3),
             round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs5)), 3)
         ),
-
         RMSE = c(
             round(
                 sqrt(mean((fsp.data$fsp.data.y - fsp.data$linear)^2)),
@@ -584,45 +546,24 @@ fsp <- function(fsp.exposure, fsp.y) {
         ),
         check.names = FALSE
     )
-    print(knitr::kable(
-        results_df,
-        format = "pipe",
-        caption = "Model performance"
-    ))
-    cat(paste0(
-        "\n",
-        "y = ",
-        round(coef(fsp.fitlinear)[1], 2),
-        " + ",
-        round(coef(fsp.fitlinear)[2], 2),
-        "x",
-        "\n"
-    ))
-    cat(
-        paste0(
-            "No.missing for ",
-            fsp.xname,
-            " / ",
-            fsp.yname,
-            ": ",
-            fsp.xmissing,
-            " / ",
-            fsp.ymissing
-        )
-    )
+    print(p)
+    print(knitr::kable(t))
+    t <- as.data.frame(t)
+    t[, 2:4] <- lapply(t[, 2:4], function(column) {
+        sprintf("%.3f", column)
+    })
+    invisible(t)
 }
 
 
 ## Categorical check using box-and-whisker plot ################################
 #' Title
-#'
 #' @param fbp.x
 #' @param fbp.y
-#'
 #' @return
 #' @export
-#'
 #' @examples fbp(mtcars$gear, mtcars$wt)
+#' @examples fhtml(fbp(mtcars$gear, mtcars$wt))
 fbp <- function(fbp.x, fbp.y) {
     fsp.data <- data.table(eval(fbp.x), eval(fbp.y))
     fbp.xlabel <- gsub(".*\\$", "", deparse(substitute(fbp.x)))
@@ -642,7 +583,7 @@ fbp <- function(fbp.x, fbp.y) {
     ) {
         stop(fbp.xlabel, " must beless than 10 unique values")
     }
-    fbp.plot <-
+    p <-
         ggplot(fsp.data, aes(x = factor(fbp.x), y = fbp.y)) +
         coord_cartesian() +
         geom_boxplot(
@@ -652,22 +593,6 @@ fbp <- function(fbp.x, fbp.y) {
             width = 0.5,
             lwd = 0.8
         ) +
-        #       stat_boxplot(geom  = 'errorbar',
-        #                     width = 0.2,
-        #                   cex   = 0.2) +
-        #      geom_dotplot(
-        #           binaxis    = 'y',
-        #           stackdir   = 'center',
-        #           position   = position_jitter(
-        #              seed   = 161893,
-        #             width  = 0.3,
-        #              height = 0.3
-        #          ),
-        #          binwidth   = 1,
-        #          dotsize = 0.5,
-        #          colour = "black",
-        #           fill = "grey70"
-        #     ) +
         labs(
             x = as.character(substitute(fbp.xlabel)),
             y = as.character(substitute(fbp.ylabel))
@@ -679,8 +604,11 @@ fbp <- function(fbp.x, fbp.y) {
             axis.title.y = element_text(size = 15, colour = "black"),
             axis.text.y = element_text(size = 15, colour = "black"),
         )
-    print(fbp.plot)
-    fs(fbp.y, fbp.x, fs.html = FALSE, fs.label = fbp.xlabel)
+    print(p)
+    t <- data.frame(fs(fbp.y, fbp.x))
+    names(t)[1] <- paste0(fbp.ylabel, "/", fbp.xlabel)
+    print(t)
+    invisible(t)
 }
 
 
@@ -688,7 +616,6 @@ fbp <- function(fbp.x, fbp.y) {
 ## Table 1 #####################################################################
 # https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html
 #' Title
-#'
 #' @param ft.data
 #' @param ft.vars
 #' @param ft.cats
@@ -696,12 +623,10 @@ fbp <- function(fbp.x, fbp.y) {
 #' @param ft.group
 #' @param ft.cdig
 #' @param ft.test
-#'
 #' @return
 #' @export
-#'
 #' @examples ft(iris, colnames(iris),"Species","Petal.Length","Species")
-#' @examples ft(iris, colnames(iris),"Species","Petal.Length","Species", ft.html = T)
+#' @examples fhtml(ft(iris, colnames(iris),"Species","Petal.Length","Species"))
 ft <- function(
     ft.data,
     ft.vars,
@@ -709,8 +634,7 @@ ft <- function(
     ft.nvars = NULL,
     ft.group = NULL,
     ft.cdig = 1,
-    ft.test = FALSE,
-    ft.html = FALSE
+    ft.test = FALSE
 ) {
     if (is.null(ft.group)) {
         ft.print <- print(
@@ -751,24 +675,28 @@ ft <- function(
         )
     }
     fcopy(ft.print)
-    return(ft.print)
+    invisible(ft.print)
 }
-if (ft.html) {}
+
 ## number of total and event ###################################################
 #' Title
-#'
 #' @param fpn.event
 #' @param fpn.exposure
-#'
 #' @return
 #' @export
-#'
 #'           fpn.event <- mtcars$am
 #'           fpn.exposure <- mtcars$gear
 #' @examples fpn(mtcars$am , mtcars$gear)
-#' @examples fpn(mtcars$am , mtcars$gear, T, F)
+#' @examples fpn(mtcars$am , mtcars$gear, outcome = "0")
 #' @examples fpn(mtcars$am , mtcars$gear, T, T)
-fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
+#' @examples fhtml(fpn(mtcars$am , mtcars$gear))
+fpn <- function(
+    fpn.event,
+    fpn.exposure,
+    fpn.prop = FALSE,
+    fpn.test = FALSE,
+    outcome = "1"
+) {
     Event <- fpn.event
     Exposure <- fpn.exposure
     if (length(unique(fpn.event)) != 2) {
@@ -792,27 +720,17 @@ fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
             prop.r = fpn.prop,
             prop.c = fpn.prop
         )
-        fpn.table <- as.data.frame(t(data.table(
-            "No. of events" = fpn.crosstable$t[2, ],
-            "No. of participants" = fpn.crosstable$t[1, ] +
-                fpn.crosstable$t[2, ],
-            check.names = FALSE
-        )))
-        colnames(fpn.table) <- colnames(fpn.crosstable$t)
-        fpn.table2 <- data.frame(
-            Category = format(
-                c(
-                    sub(".*\\$", "", deparse(substitute(fpn.exposure))),
-                    rownames(fpn.table)
-                ),
-                justify = "left"
-            ),
-            rbind(colnames(fpn.table), fpn.table),
-            check.names = FALSE
+        t <- data.frame(
+            rbind(
+                "No. of events" = as.vector(fpn.crosstable$t[outcome, ]),
+                "No. of participants" = as.vector(colSums(fpn.crosstable$t))
+            )
         )
-        colnames(fpn.table2) <- NULL
-        print(fpn.table2, row.names = FALSE, quote = FALSE)
-        fcopy(fpn.table)
+        t$Total <- rowSums(t)
+        colnames(t) <- c(colnames(fpn.crosstable$t), "Total")
+        print(t)
+        fcopy(t)
+        invisible(t)
     }
 }
 
@@ -829,23 +747,17 @@ fpn <- function(fpn.event, fpn.exposure, fpn.prop = FALSE, fpn.test = FALSE) {
 #'           fpy.pyear <- iris$Sepal.Length
 #'           fpy.exposure <- iris$Species
 #' @examples fpy(iris$Sepal.Length, iris$Species)
+#' @examples fhtml(fpy(iris$Sepal.Length, iris$Species))
 fpy <- function(fpy.pyear, fpy.exposure) {
-    fpy.table <- as.data.table(t(as.data.table(fs(
-        fpy.pyear,
-        fpy.exposure,
-        FALSE
-    ))[, 3]))
-    fpy.table$"" <- "Person years"
-    colnames(fpy.table) <- c(
-        as.character(as.list(as.data.table(fs(fpy.pyear, fpy.exposure, FALSE))[,
-            1
-        ])[[1]]),
-        sub(".*\\$", "", deparse(substitute(fpy.exposure)))
-    )
-    setcolorder(fpy.table, c(ncol(fpy.table), 1:(ncol(fpy.table) - 1)))
-    fcopy(fpy.table)
-    print(as.data.frame(fpy.table))
+    t <- fs(fpy.pyear, fpy.exposure)
+    t <- data.frame(`Person years` = t$Sum, check.names = FALSE)
+    rownames(t) <- as.character(fs(fpy.pyear, fpy.exposure)[[1]])
+    t <- as.data.frame(t(t))
+    t$Total <- rowSums(t)
+    fcopy(t)
+    print(t)
 }
+
 
 ## linear model ################################################################
 #' Title
@@ -859,41 +771,41 @@ fpy <- function(fpy.pyear, fpy.exposure) {
 #' @export
 #'
 #' @examples
-fglm <- function(fglm.data, fglm.model, fglm.n = 1, fglm.t = FALSE) {
-    fglm.fit <- ols(formula = fglm.model, data = environment(fglm.data))
-    fglm.fit$coefficients
-    summary(fglm.fit)
-    fglm.table <- data.table(
-        Vars = rownames(summary(fglm.fit)),
-        Beta = fglm.fit$coefficients[-1]
-    )
-    fglm.clip <-
-        fglm.table[(nrow(fglm.table) - fglm.n + 1):nrow(fglm.table)]
-    if (fglm.t) {
-        fglm.clip.output <- format(round(t(fglm.clip[, 2]), 3), nsmall = 3)
-    } else {
-        fglm.clip.output <- format(round(fglm.clip[, 2], 3), nsmall = 3)
-    }
-    print(fglm.fit)
-    cat("\n")
-    cat("\n")
-    print(fglm.clip)
-    write.table(
-        fglm.clip.output,
-        paste0(
-            "clipboard-",
-            formatC(
-                100 * 100,
-                format = "f",
-                digits = 0
-            )
-        ),
-        sep = "\t",
-        row.names = FALSE,
-        col.names = FALSE,
-        dec = "."
-    )
-}
+# fglm <- function(fglm.data, fglm.model, fglm.n = 1, fglm.t = FALSE) {
+#     fglm.fit <- ols(formula = fglm.model, data = environment(fglm.data))
+#     fglm.fit$coefficients
+#     summary(fglm.fit)
+#     fglm.table <- data.table(
+#         Vars = rownames(summary(fglm.fit)),
+#         Beta = fglm.fit$coefficients[-1]
+#     )
+#     fglm.clip <-
+#         fglm.table[(nrow(fglm.table) - fglm.n + 1):nrow(fglm.table)]
+#     if (fglm.t) {
+#         fglm.clip.output <- format(round(t(fglm.clip[, 2]), 3), nsmall = 3)
+#     } else {
+#         fglm.clip.output <- format(round(fglm.clip[, 2], 3), nsmall = 3)
+#     }
+#     print(fglm.fit)
+#     cat("\n")
+#     cat("\n")
+#     print(fglm.clip)
+#     write.table(
+#         fglm.clip.output,
+#         paste0(
+#             "clipboard-",
+#             formatC(
+#                 100 * 100,
+#                 format = "f",
+#                 digits = 0
+#             )
+#         ),
+#         sep = "\t",
+#         row.names = FALSE,
+#         col.names = FALSE,
+#         dec = "."
+#     )
+# }
 
 ## logistic model ##############################################################
 #' Title
@@ -906,61 +818,60 @@ fglm <- function(fglm.data, fglm.model, fglm.n = 1, fglm.t = FALSE) {
 #' @export
 #'
 #' @examples
-ORs <- function(ORs.analysis_data, ORs.model, ORs.n) {
-    logistic_model <- glm(
-        ORs.model,
-        data = ORs.analysis_data,
-        family = binomial(link = 'logit')
-    )
-    ORs.observation <- paste(
-        "Number",
-        "of",
-        "observation",
-        "is",
-        length(residuals(logistic_model))
-    )
-    ORs.model_results <- exp(cbind(
-        OR = coef(logistic_model),
-        confint(logistic_model)
-    ))
-    ORs.round_model_results <- round(ORs.model_results, 2)
-    ORs.table <- data.table(
-        Exposures = row.names(ORs.round_model_results),
-        ORs = paste(
-            ORs.round_model_results[, 1],
-            " (",
-            ORs.round_model_results[, 2],
-            "-",
-            ORs.round_model_results[, 3],
-            ")",
-            sep = ""
-        ),
-        P_value = round(
-            as.numeric(
-                summary(logistic_model)$coefficients[, c(4)]
-            ),
-            4
-        )
-    )
-    ORs.horizontal_table <- as.data.frame(t(ORs.table))
-    ORs.horizontal_table_print <- ORs.horizontal_table[
-        row.names(ORs.horizontal_table) == "ORs",
-        (ncol(ORs.horizontal_table) - ORs.n + 1):ncol(ORs.horizontal_table)
-    ]
-    print(summary(logistic_model))
-    print(ORs.table)
-    print(ORs.horizontal_table_print)
-    print(noquote(ORs.observation))
-    write.table(
-        ORs.horizontal_table_print,
-        paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
-        sep = "\t",
-        row.names = FALSE,
-        col.names = FALSE,
-        dec = "."
-    )
-}
-
+# ORs <- function(ORs.analysis_data, ORs.model, ORs.n) {
+#     logistic_model <- glm(
+#         ORs.model,
+#         data = ORs.analysis_data,
+#         family = binomial(link = 'logit')
+#     )
+#     ORs.observation <- paste(
+#         "Number",
+#         "of",
+#         "observation",
+#         "is",
+#         length(residuals(logistic_model))
+#     )
+#     ORs.model_results <- exp(cbind(
+#         OR = coef(logistic_model),
+#         confint(logistic_model)
+#     ))
+#     ORs.round_model_results <- round(ORs.model_results, 2)
+#     ORs.table <- data.table(
+#         Exposures = row.names(ORs.round_model_results),
+#         ORs = paste(
+#             ORs.round_model_results[, 1],
+#             " (",
+#             ORs.round_model_results[, 2],
+#             "-",
+#             ORs.round_model_results[, 3],
+#             ")",
+#             sep = ""
+#         ),
+#         P_value = round(
+#             as.numeric(
+#                 summary(logistic_model)$coefficients[, c(4)]
+#             ),
+#             4
+#         )
+#     )
+#     ORs.horizontal_table <- as.data.frame(t(ORs.table))
+#     ORs.horizontal_table_print <- ORs.horizontal_table[
+#         row.names(ORs.horizontal_table) == "ORs",
+#         (ncol(ORs.horizontal_table) - ORs.n + 1):ncol(ORs.horizontal_table)
+#     ]
+#     print(summary(logistic_model))
+#     print(ORs.table)
+#     print(ORs.horizontal_table_print)
+#     print(noquote(ORs.observation))
+#     write.table(
+#         ORs.horizontal_table_print,
+#         paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
+#         sep = "\t",
+#         row.names = FALSE,
+#         col.names = FALSE,
+#         dec = "."
+#     )
+# }
 
 ## cox model ###################################################################
 # The proportional hazards assumption is checked using statistical tests and
@@ -977,56 +888,55 @@ ORs <- function(ORs.analysis_data, ORs.model, ORs.n) {
 #' @export
 #'
 #' @examples
-HRs <- function(HRs.analysis_data, HRs.model, HRs.n) {
-    cox_model <- survival::coxph(HRs.model, data = HRs.analysis_data, )
-    HRs.observation <- paste(
-        "Number",
-        "of",
-        "observation",
-        "is",
-        length(residuals(cox_model))
-    )
-    HRs.model_results <- exp(cbind(HR = coef(cox_model), confint(cox_model)))
-    HRs.round_model_results <- round(HRs.model_results, 2)
-    HRs.table <- data.frame(
-        Exposures = row.names(HRs.round_model_results),
-        HRs = paste(
-            HRs.round_model_results[, 1],
-            " (",
-            HRs.round_model_results[, 2],
-            "-",
-            HRs.round_model_results[, 3],
-            ")",
-            sep = ""
-        ),
-        P_value = round(
-            as.numeric(
-                summary(cox_model)$coefficients[, c(5)]
-            ),
-            4
-        )
-    )
-    HRs.horizontal_table <- as.data.frame(t(HRs.table))
-    summary(cox_model)
-    print(HRs.table)
-    HRs.horizontal_table_print <- HRs.horizontal_table[
-        row.names(HRs.horizontal_table) == "HRs",
-        (ncol(HRs.horizontal_table) - HRs.n + 1):ncol(HRs.horizontal_table)
-    ]
-    print(summary(cox_model))
-    print(HRs.table)
-    print(HRs.horizontal_table_print)
-    print(noquote(HRs.observation))
-    write.table(
-        HRs.horizontal_table_print,
-        paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
-        sep = "\t",
-        row.names = FALSE,
-        col.names = FALSE,
-        dec = "."
-    )
-}
-
+# HRs <- function(HRs.analysis_data, HRs.model, HRs.n) {
+#     cox_model <- survival::coxph(HRs.model, data = HRs.analysis_data, )
+#     HRs.observation <- paste(
+#         "Number",
+#         "of",
+#         "observation",
+#         "is",
+#         length(residuals(cox_model))
+#     )
+#     HRs.model_results <- exp(cbind(HR = coef(cox_model), confint(cox_model)))
+#     HRs.round_model_results <- round(HRs.model_results, 2)
+#     HRs.table <- data.frame(
+#         Exposures = row.names(HRs.round_model_results),
+#         HRs = paste(
+#             HRs.round_model_results[, 1],
+#             " (",
+#             HRs.round_model_results[, 2],
+#             "-",
+#             HRs.round_model_results[, 3],
+#             ")",
+#             sep = ""
+#         ),
+#         P_value = round(
+#             as.numeric(
+#                 summary(cox_model)$coefficients[, c(5)]
+#             ),
+#             4
+#         )
+#     )
+#     HRs.horizontal_table <- as.data.frame(t(HRs.table))
+#     summary(cox_model)
+#     print(HRs.table)
+#     HRs.horizontal_table_print <- HRs.horizontal_table[
+#         row.names(HRs.horizontal_table) == "HRs",
+#         (ncol(HRs.horizontal_table) - HRs.n + 1):ncol(HRs.horizontal_table)
+#     ]
+#     print(summary(cox_model))
+#     print(HRs.table)
+#     print(HRs.horizontal_table_print)
+#     print(noquote(HRs.observation))
+#     write.table(
+#         HRs.horizontal_table_print,
+#         paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
+#         sep = "\t",
+#         row.names = FALSE,
+#         col.names = FALSE,
+#         dec = "."
+#     )
+# }
 
 #' Kaplan-Meier plot
 #'
@@ -1037,26 +947,25 @@ HRs <- function(HRs.analysis_data, HRs.model, HRs.n) {
 #' @export
 #'
 #' @examples
-KMplot <- function(KMplot.analysis_data, KMplot.model) {
-    KMplot.KM <- survminer::surv_fit(KMplot.model, data = KMplot.analysis_data)
-    # summary(KMplot, times=seq(0, 1000, 250))
-    survminer::ggsurvplot(
-        KMplot.KM,
-        data = KMplot.analysis_data,
-        conf.int = TRUE,
-        pval = TRUE,
-        pval.method = FALSE,
-        pval.coord = c(0, 1.0),
-        # test.for.trend     = TRUE, # > 2 groups
-        risk.table = TRUE,
-        # surv.median.line   = c("hv"),
-        # legend.labs        = c("Group1", "Group2"),
-        legend.title = "Group",
-        # palette            = c("gray25", "gray50"),
-        risk.table.height = .25
-    )
-}
-
+# KMplot <- function(KMplot.analysis_data, KMplot.model) {
+#     KMplot.KM <- survminer::surv_fit(KMplot.model, data = KMplot.analysis_data)
+#     # summary(KMplot, times=seq(0, 1000, 250))
+#     survminer::ggsurvplot(
+#         KMplot.KM,
+#         data = KMplot.analysis_data,
+#         conf.int = TRUE,
+#         pval = TRUE,
+#         pval.method = FALSE,
+#         pval.coord = c(0, 1.0),
+#         # test.for.trend     = TRUE, # > 2 groups
+#         risk.table = TRUE,
+#         # surv.median.line   = c("hv"),
+#         # legend.labs        = c("Group1", "Group2"),
+#         legend.title = "Group",
+#         # palette            = c("gray25", "gray50"),
+#         risk.table.height = .25
+#     )
+# }
 
 #'Fine.Gray model for competing risk
 #'
@@ -1069,54 +978,53 @@ KMplot <- function(KMplot.analysis_data, KMplot.model) {
 #' @export
 #'
 #' @examples
-Fine.Gray.HRs <- function(FG.time, FG.status, FG.model, FG.n) {
-    FG.cox_model <- cmprsk::crr(
-        ftime = FG.time,
-        fstatus = FG.status,
-        FG.model,
-        failcode = 1,
-        cencode = 0
-    )
-    FG.observation <- paste("Number", "of", "observation", "is", FG.cox_model$n)
-    FG.model_results <- summary(FG.cox_model)
-    FG.round_model_results <- round(FG.model_results$conf.int[, -2], 2)
-    FG.table <- data.frame(
-        Exposures = row.names(FG.round_model_results),
-        FG.HRs = paste(
-            FG.round_model_results[, 1],
-            " (",
-            FG.round_model_results[, 2],
-            "-",
-            FG.round_model_results[, 3],
-            ")",
-            sep = ""
-        ),
-        P_value = round(
-            FG.model_results$coef[, 5],
-            4
-        )
-    )
-    FG.horizontal_table <- as.data.frame(t(FG.table))
-    summary(FG.cox_model)
-    print(FG.table)
-    FG.horizontal_table_print <- FG.horizontal_table[
-        row.names(FG.horizontal_table) == "FG.HRs",
-        (ncol(FG.horizontal_table) - FG.n + 1):ncol(FG.horizontal_table)
-    ]
-    print(summary(FG.cox_model))
-    print(FG.table)
-    print(FG.horizontal_table_print)
-    print(noquote(FG.observation))
-    write.table(
-        FG.horizontal_table_print,
-        paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
-        sep = "\t",
-        row.names = FALSE,
-        col.names = FALSE,
-        dec = "."
-    )
-}
-
+# Fine.Gray.HRs <- function(FG.time, FG.status, FG.model, FG.n) {
+#     FG.cox_model <- cmprsk::crr(
+#         ftime = FG.time,
+#         fstatus = FG.status,
+#         FG.model,
+#         failcode = 1,
+#         cencode = 0
+#     )
+#     FG.observation <- paste("Number", "of", "observation", "is", FG.cox_model$n)
+#     FG.model_results <- summary(FG.cox_model)
+#     FG.round_model_results <- round(FG.model_results$conf.int[, -2], 2)
+#     FG.table <- data.frame(
+#         Exposures = row.names(FG.round_model_results),
+#         FG.HRs = paste(
+#             FG.round_model_results[, 1],
+#             " (",
+#             FG.round_model_results[, 2],
+#             "-",
+#             FG.round_model_results[, 3],
+#             ")",
+#             sep = ""
+#         ),
+#         P_value = round(
+#             FG.model_results$coef[, 5],
+#             4
+#         )
+#     )
+#     FG.horizontal_table <- as.data.frame(t(FG.table))
+#     summary(FG.cox_model)
+#     print(FG.table)
+#     FG.horizontal_table_print <- FG.horizontal_table[
+#         row.names(FG.horizontal_table) == "FG.HRs",
+#         (ncol(FG.horizontal_table) - FG.n + 1):ncol(FG.horizontal_table)
+#     ]
+#     print(summary(FG.cox_model))
+#     print(FG.table)
+#     print(FG.horizontal_table_print)
+#     print(noquote(FG.observation))
+#     write.table(
+#         FG.horizontal_table_print,
+#         paste0("clipboard-", formatC(100 * 100, format = "f", digits = 0)),
+#         sep = "\t",
+#         row.names = FALSE,
+#         col.names = FALSE,
+#         dec = "."
+#     )
+# }
 
 ## modified summary.rms ########################################################
 #' Titlemodified summary
