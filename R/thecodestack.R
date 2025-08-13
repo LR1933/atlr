@@ -3,10 +3,10 @@
 # devtools::build()
 # devtools::document()
 # devtools::check()
-require(data.table)
-require(ggplot2)
-require(dplyr)
-require(rms)
+# require(data.table)
+# require(ggplot2)
+# require(dplyr)
+# require(rms)
 
 ## rounding ####################################################################
 #' Title rounding
@@ -115,9 +115,9 @@ fhtml <- function(
 #' @param t
 #' @return judge discrete variables
 #' @export
-#' @examples fdiscrete_var(iris$Sepal.Length)
-#' @examples fdiscrete_var(cars$dist)
-fdiscrete_var <- function(d, t = 10) {
+#' @examples fdiscrete(iris$Sepal.Length)
+#' @examples fdiscrete(cars$dist)
+fdiscrete <- function(d, t = 10) {
     if (is.factor(d) || is.character(d)) {
         return(TRUE)
     }
@@ -140,9 +140,9 @@ fdiscrete_var <- function(d, t = 10) {
 #' @return
 #' @export
 #'           J <- "令 1.12.12"
-#' @examples Jcal(c("平 5", "令 1.12.12", "昭 64.1"))
-#' @examples fhtml(Jcal(c("平 5", "令 1.12.12", "昭 64.1")))
-Jcal <- function(J) {
+#' @examples fjcal(c("平 5", "令 1.12.12", "昭 64.1"))
+#' @examples fhtml(fjcal(c("平 5", "令 1.12.12", "昭 64.1")))
+fjcal <- function(J) {
     rule <- list(
         list(p = "大", s = 1911, count = 15),
         list(p = "昭", s = 1925, count = 64),
@@ -300,12 +300,12 @@ fs <- function(fs.varibale, fs.group = NA) {
 fd <- function(fd.variable, plot = TRUE) {
     label <- sub(".*\\$", "", deparse(substitute(fd.variable)))
     f <- factor(fd.variable, exclude = NULL)
-    df <- as.data.frame(table(f, useNA = "ifany"))
-    colnames(df) <- c("Values", "Frequency")
-    df$Percent <- round(df$Frequency / sum(df$Frequency) * 100, 2)
-    df$CumFrequency <- cumsum(df$Frequency)
-    df$CumPercent <- round(cumsum(df$Percent), 2)
-    p <- ggplot(df, aes(x = Values, y = Frequency)) +
+    t <- as.data.frame(table(f, useNA = "ifany"))
+    colnames(t) <- c("Values", "Frequency")
+    t$Percent <- round(t$Frequency / sum(t$Frequency) * 100, 2)
+    t$CumFrequency <- cumsum(t$Frequency)
+    t$CumPercent <- round(cumsum(t$Percent), 2)
+    p <- ggplot(t, aes(x = Values, y = Frequency)) +
         geom_bar(stat = "identity", fill = "black") +
         labs(
             title = label,
@@ -318,10 +318,10 @@ fd <- function(fd.variable, plot = TRUE) {
             axis.text = element_text(size = 10)
         ) +
         scale_x_discrete(
-            breaks = df$Values[seq(
+            breaks = t$Values[seq(
                 1,
-                length(df$Values),
-                by = max(1, floor(length(df$Values) / 10))
+                length(t$Values),
+                by = max(1, floor(length(t$Values) / 10))
             )]
         )
     if (nlevels(f) <= 10) {
@@ -330,7 +330,8 @@ fd <- function(fd.variable, plot = TRUE) {
     if (plot) {
         print(p)
     }
-    print(df)
+    print(t)
+    invisible(t)
 }
 
 
@@ -375,6 +376,7 @@ fdc <- function(fdc.variable1, fdc.variable2) {
     )
     print(p)
     print(t)
+    invisible(t)
 }
 
 
@@ -396,7 +398,7 @@ fdp <- function(fdp.variable, fdp.binwidth = 1) {
         )
     }
     label <- gsub(".*\\$", "", deparse(substitute(fdp.variable)))
-    if (fdiscrete_var(fdp.variable)) {
+    if (fdiscrete(fdp.variable)) {
         fdp.plot <- ggplot() +
             geom_histogram(
                 aes(x = fdp.variable),
@@ -424,7 +426,8 @@ fdp <- function(fdp.variable, fdp.binwidth = 1) {
             theme_grey()
     }
     print(fdp.plot)
-    return(fd(fdp.variable, plot = FALSE))
+    print(fd(fdp.variable, plot = FALSE))
+    invisible(fd(fdp.variable, plot = FALSE))
 }
 
 
@@ -759,6 +762,85 @@ fpy <- function(fpy.pyear, fpy.exposure) {
 }
 
 
+## modified summary.rms ########################################################
+#' Titlemodified summary
+#' @param fe.fit
+#' @param fe.var
+#' @param n
+#' @return
+#' @export
+#' @examples options(datadist =  datadist(iris)); iris$Species <-  sample(0:1, 150, replace = TRUE)
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), 1:2)
+#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), 2:3)
+#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
+#' @example fhtml(fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width")))
+fe <- function(
+    fe.summary,
+    fe.rows = NULL,
+    digits = 2
+) {
+    dt <- as.data.table(fe.summary, keep.rownames = "Factor")
+    dt <- dt[, -c("Type")]
+    if (any(grepl("Ratio", dt$Factor, ignore.case = TRUE))) {
+        tinfo <- dt[seq(1, nrow(dt), by = 2), ]
+        tratios <- dt[seq(2, nrow(dt), by = 2), ]
+        n <- paste0(trimws(tratios$Factor[1]), " (95% CI)")
+        f <- paste0("%.", digits, "f")
+        formatted_col <- sprintf(
+            paste0(f, " (", f, " to ", f, ")"),
+            tratios$Effect,
+            tratios$`Lower 0.95`,
+            tratios$`Upper 0.95`
+        )
+        tinfo[, (n) := formatted_col]
+        t <- tinfo
+        final_cols <- c("Factor", "Low", "High", "Diff.", n)
+    } else {
+        if ("Estimate" %in% names(dt)) {
+            setnames(dt, "Estimate", "Effect")
+        }
+        if ("2.5 %" %in% names(dt)) {
+            setnames(dt, "2.5 %", "Lower 0.95")
+        }
+        if ("97.5 %" %in% names(dt)) {
+            setnames(dt, "97.5 %", "Upper 0.95")
+        }
+        f <- paste0("%.", digits, "f")
+        dt[,
+            ("Effect (95% CI)") := sprintf(
+                paste0(f, " (", f, " to ", f, ")"),
+                dt$Effect,
+                dt$`Lower 0.95`,
+                dt$`Upper 0.95`
+            )
+        ]
+        t <- dt
+        final_cols <- c(
+            "Factor",
+            intersect(c("Low", "High", "Diff."), names(t)),
+            "Effect (95% CI)"
+        )
+    }
+    if (!is.null(fe.rows)) {
+        if (is.character(fe.rows)) {
+            t <- t[Factor %in% fe.rows]
+            t[, Factor := factor(Factor, levels = fe.rows)]
+            setorder(t, Factor)
+        } else if (is.numeric(fe.rows)) {
+            t <- t[fe.rows]
+        }
+    }
+    if (nrow(t) == 0) {
+        stop("Error: Row name does not exist.")
+    }
+    c <- intersect(c("Low", "High", "Diff", "Diff."), names(t))
+    t[, (c) := lapply(.SD, function(x) sprintf("%.2f", x)), .SDcols = c]
+    print(t[, ..final_cols])
+    fcopy(t[, ..final_cols][, 5])
+    invisible(t[, ..final_cols])
+}
+
 ## linear model ################################################################
 #' Title
 #'
@@ -1025,280 +1107,3 @@ fpy <- function(fpy.pyear, fpy.exposure) {
 #         dec = "."
 #     )
 # }
-
-## modified summary.rms ########################################################
-#' Titlemodified summary
-#'
-#' @param fe.fit
-#' @param fe.var
-#' @param n
-#'
-#' @return
-#' @export
-#'
-#' @examples options(datadist =  datadist(iris)); iris$Species <-  sample(0:1, 150, replace = TRUE)
-#'
-#' @examples fe(lm(Sepal.Length ~ ., iris), 2:3)
-#' @examples fe(lm(Sepal.Length ~ ., iris), c("Petal.Length", "Sepal.Width"))
-#'
-#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), 2:3)
-#' @examples fe(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), c("Petal.Length", "Sepal.Width"))
-#'
-#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), 1:2)
-#' @examples fe(summary(ols(Sepal.Length ~ .,  subset(iris, select = -Species)), Petal.Length = c(1,2)), c("Petal.Length", "Sepal.Width"))
-#'
-#' @examples fe(lrm(Species ~.,  iris), 2:3)
-#' @examples fe(lrm(Species ~ .,  iris),c("Petal.Length", "Sepal.Width"))
-#'
-#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), 2:3)
-#' @examples fe(summary(lrm(Species ~ .,  iris), Sepal.Length = c(1,2),  Sepal.Width = c(1,2)), c("Petal.Length", "Sepal.Width"))
-fe <- function(fe.fit, fe.var = NULL, n = 2) {
-    Risk_ratio <- paste0(sub("^ ", "", rownames(fe.fit)[2]), " (95% CI)")
-    if (!(grepl("ratio", Risk_ratio, ignore.case = TRUE))) {
-        Risk_ratio <- "Effect (95% CI)"
-    }
-    if ("rms" %in% class(fe.fit) && any((grepl("\\'", names(coef(fe.fit)))))) {
-        stop("Error: including nonlinear varibale. use fe(summary()).")
-    }
-    if (is.null(fe.fit)) {
-        stop("Error: fit is NULL.")
-    }
-    if (is.symbol(substitute(fe.var))) {
-        fe.var <- as.character(substitute(fe.var))
-    }
-    if ("summary.rms" %in% class(fe.fit) && "matrix" %in% class(fe.fit)) {
-        if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
-            fe.table1 <- as.data.frame(fe.fit[
-                seq(1, nrow(fe.fit), by = 2),
-                -c(8)
-            ])
-            fe.table1$"E (95% CI)" <- paste0(
-                format(
-                    round(
-                        as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 4]),
-                        n
-                    ),
-                    nsmall = n
-                ),
-                " (",
-                format(
-                    round(
-                        as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 6]),
-                        n
-                    ),
-                    nsmall = n
-                ),
-                " - ",
-                format(
-                    round(
-                        as.numeric(fe.fit[seq(2, nrow(fe.fit), by = 2), 7]),
-                        n
-                    ),
-                    nsmall = n
-                ),
-                ")"
-            )
-            fe.table1$Factor <- rownames(fe.table1)
-        } else {
-            fe.table1 <- as.data.frame(fe.fit[, -c(8)])
-            fe.table1$"E (95% CI)" <- paste0(
-                format(round(fe.table1$Effect, n), nsmall = n),
-                " (",
-                format(round(fe.table1$"Lower 0.95", n), nsmall = n),
-                " - ",
-                format(round(fe.table1$"Upper 0.95", n), nsmall = n),
-                ")"
-            )
-            fe.table1$Factor <- rownames(fe.table1)
-        }
-        fe.table1 <- fe.table1[, c(
-            "Factor",
-            "Low",
-            "High",
-            "Diff.",
-            "E (95% CI)"
-        )]
-        fe.table2 <- as.data.table(fe.table1)
-        colnames(fe.table2)[colnames(fe.table2) == "E (95% CI)"] <- Risk_ratio
-        # fe.var is character type
-        if (is.character(fe.var)) {
-            if (any(grepl(" ", fe.var))) {
-                stop("Error: invalid varibale input. including space.")
-            } else {
-                pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")") # "^" is for same initial wordss
-                fe.coef <- grep(pattern, fe.table2$Factor, value = TRUE)
-                if (length(fe.coef) == 0) {
-                    stop(
-                        "Error: invalid varibale input. non-existent variable."
-                    )
-                }
-                fe.table <- fe.table2[
-                    grepl(paste(fe.var, collapse = "|"), fe.table2$Factor),
-                ]
-            }
-        } else if (is.numeric(fe.var)) {
-            # fe.var is numeric type
-            if (max(fe.var) > length(fe.table2$Factor)) {
-                stop("Error: invalid varibale input. exceeding upper limit.")
-            } else if (min(fe.var) <= 0) {
-                stop("Error: invalid varibale input. exceeding lower limit.")
-            } else {
-                fe.indices <- seq(min(fe.var), max(fe.var))
-                fe.table <- fe.table2[fe.indices, ]
-            }
-        } else if (is.null(fe.var)) {
-            # fe.var is null
-            fe.table <- fe.table2
-        } else {
-            stop("Error: check function related to input of summary.rms.")
-        }
-        print(fe.table, row.names = FALSE)
-        fcopy(fe.table[, ..Risk_ratio])
-    } else if ("list" %in% typeof(fe.fit) && "matrix" %nin% class(fe.fit)) {
-        #
-        # fe.fit is the fit rather than the summary
-        model_classes <- as.list(setNames(
-            c(
-                rep("Effect (95% CI)", 5),
-                rep("Odds ratio (95% CI)", 2),
-                rep("Hazard ratio (95% CI)", 2)
-            ),
-            c(
-                "lm",
-                "glm",
-                "ols",
-                "Glm",
-                "Gls", # rep("Effect (95% CI)", 5)
-                "lrm",
-                "orm", # rep("Odds ratio (95% CI)", 2)
-                "cph",
-                "coxph"
-            ) # rep("Hazard ratio (95% CI)", 2))
-        ))
-        Risk_ratio <- model_classes[[class(fe.fit)[1]]]
-        if (is.null(Risk_ratio)) {
-            stop("Error: check `model_classes` in function.")
-        }
-        if (
-            "glm" %in%
-                class(fe.fit) &&
-                "rms" %nin% class(fe.fit) &&
-                (length(fe.fit$family$link) > 0 &&
-                    grepl("logit", fe.fit$family$link))
-        ) {
-            Risk_ratio <- "Odds ratio (95% CI)"
-        }
-        if (grepl("ratio", Risk_ratio, ignore.case = TRUE)) {
-            if ("rms" %in% class(fe.fit)) {
-                fe.rr <- paste0(
-                    format(
-                        round(
-                            as.numeric(summary(fe.fit)[
-                                seq(2, nrow(summary(fe.fit)), by = 2),
-                                4
-                            ]),
-                            n
-                        ),
-                        nsmall = n
-                    ),
-                    " (",
-                    format(
-                        round(
-                            as.numeric(summary(fe.fit)[
-                                seq(2, nrow(summary(fe.fit)), by = 2),
-                                6
-                            ]),
-                            n
-                        ),
-                        nsmall = n
-                    ),
-                    " - ",
-                    format(
-                        round(
-                            as.numeric(summary(fe.fit)[
-                                seq(2, nrow(summary(fe.fit)), by = 2),
-                                7
-                            ]),
-                            n
-                        ),
-                        nsmall = n
-                    ),
-                    ")"
-                )
-                fe.rr <- c("", fe.rr)
-            } else {
-                fe.rr <- paste0(
-                    format(round(exp(coef(fe.fit)), n), nsmall = n),
-                    " (",
-                    format(
-                        round(exp(as.numeric(confint(fe.fit)[, 1])), n),
-                        nsmall = n
-                    ),
-                    " - ",
-                    format(
-                        round(exp(as.numeric(confint(fe.fit)[, 2])), n),
-                        nsmall = n
-                    ),
-                    ")"
-                )
-            }
-        } else {
-            fe.rr <- paste0(
-                format(round(coef(fe.fit), n), nsmall = n),
-                " (",
-                format(round(as.numeric(confint(fe.fit)[, 1]), n), nsmall = n),
-                " - ",
-                format(round(as.numeric(confint(fe.fit)[, 2]), n), nsmall = n),
-                ")"
-            )
-        }
-        fe.table1 <- data.frame(
-            Factor = names(coef(fe.fit)),
-            Effect = coef(fe.fit),
-            S.E. = sqrt(diag(vcov(fe.fit))),
-            "Risk Ratio (95% CI)" = fe.rr
-        )
-        names(fe.table1) <- c("Factor", "Effect", "S.E.", "Risk Ratio (95% CI)")
-        colnames(fe.table1)[
-            colnames(fe.table1) == "Risk Ratio (95% CI)"
-        ] <- Risk_ratio
-        fe.table1 <- as.data.table(fe.table1)
-        fe.table1 <- fe.table1[fe.table1[[4]] != "", ]
-        # fe.var is character type
-        if (is.character(fe.var)) {
-            if (any(grepl(" ", fe.var))) {
-                stop("Error: invalid varibale input. including space.")
-            } else {
-                pattern <- paste0("^(", paste(fe.var, collapse = "|"), ")") # "^" is for same initial words
-                fe.coef <- grep(pattern, fe.table1$Factor, value = TRUE)
-                if (length(fe.coef) == 0) {
-                    stop(
-                        "Error: invalid varibale input. non-existent variable."
-                    )
-                }
-            }
-            fe.table <- fe.table1[
-                grepl(paste(fe.var, collapse = "|"), fe.table1$Factor),
-            ]
-        } else if (is.numeric(fe.var)) {
-            # fe.var is numeric type
-            if (max(fe.var) > length(names(coef(fe.fit)))) {
-                stop("Error: invalid varibale input. exceeding upper limit.")
-            }
-            if (min(fe.var) <= 0) {
-                stop("Error: invalid varibale input. exceeding lower limit.")
-            }
-            fe.indices <- seq(min(fe.var), max(fe.var))
-            fe.table <- fe.table1[fe.indices, ]
-        } else if (is.null(fe.var)) {
-            # fe.var is null
-            fe.table <- fe.table1
-        } else {
-            stop("Error: check function related to input of fit.")
-        }
-        print(fe.table, row.names = FALSE)
-        fcopy(fe.table[, ..Risk_ratio])
-    } else {
-        stop("Error: input except fit or summary.rms; check function.")
-    }
-}
