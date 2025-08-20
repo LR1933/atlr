@@ -627,19 +627,13 @@ fbp <- function(fbp.x, fbp.y) {
     fbp.xlabel <- gsub(".*\\$", "", deparse(substitute(fbp.x)))
     fbp.ylabel <- gsub(".*\\$", "", deparse(substitute(fbp.y)))
     if (any(is.na(fbp.y))) {
-        stop(fbp.ylabel, " cannot contain missing values")
+        warning(fbp.ylabel, " contain missing values")
     }
     if (any(is.na(fbp.x))) {
-        stop(fbp.xlabel, " cannot contain missing values")
+        warning(fbp.xlabel, " contain missing values")
     }
     if (!is.numeric(fbp.y)) {
         stop(fbp.ylabel, " must be a numeric variable")
-    }
-    if (
-        (!is.numeric(fbp.x) | !is.character(fbp.x)) &&
-            length(unique(fbp.x)) > 10
-    ) {
-        stop(fbp.xlabel, " must beless than 10 unique values")
     }
     p <-
         ggplot(fsp.data, aes(x = factor(fbp.x), y = fbp.y)) +
