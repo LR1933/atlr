@@ -172,6 +172,61 @@ fjcal <- function(J) {
 }
 
 
+## list packages ###############################################################
+#' Title list packages
+#' @param savefile
+#' @param checkdeps
+#' @param showtime
+#' @return
+#' @export
+#' @examples fcopy(fpkgs())
+#' @examples fpkgs(checkdeps = TRUE)
+#' @examples fpkgs(showtime = TRUE)
+#' @examples fpkgs(savefile = "my packages.txt")
+#' @examples install.packages(readLines("my packages.txt"))
+fpkgs <- function(savefile = NULL, checkdeps = FALSE, showtime = FALSE) {
+  all_info <- installed.packages()
+  all_pkgs <- all_info[, "Package"]
+
+  base_pkgs <- c(rownames(installed.packages(priority = "base")),
+                 rownames(installed.packages(priority = "recommended")))
+  user_pkgs <- setdiff(all_pkgs, base_pkgs)
+  
+  if (showtime) {
+    pkg_paths <- all_info[user_pkgs, "LibPath"]
+    pkg_dirs  <- file.path(pkg_paths, user_pkgs)
+    install_time <- file.info(pkg_dirs)$mtime
+    df <- data.frame(
+      Package = user_pkgs,
+      Installed = install_time,
+      row.names = NULL
+    )
+    print(df[order(df$Installed, decreasing = TRUE), ], row.names = FALSE)
+  } else {
+    cat(user_pkgs, sep = "\n")
+  }
+  
+  if (!is.null(savefile)) {
+    writeLines(user_pkgs, savefile)
+    message("save as ", savefile)
+  }
+  
+  if (checkdeps) {
+    deps <- tools::package_dependencies(user_pkgs,
+                                        db = available.packages(),
+                                        reverse = TRUE)
+    for (pkg in user_pkgs) {
+      if (length(deps[[pkg]]) > 0) {
+        cat("\n", pkg, " dependent:\n  ",
+            paste(deps[[pkg]], collapse = ", "), "\n", sep = "")
+      }
+    }
+  }
+  
+  invisible(user_pkgs)
+}
+
+
 ## geometric mean ##############################################################
 #' geometric mean
 #' @param g
