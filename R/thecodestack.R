@@ -117,17 +117,29 @@ fhtml <- function(
 #' @export
 #' @examples fdiscrete(iris$Sepal.Length)
 #' @examples fdiscrete(cars$dist)
-fdiscrete <- function(d, t = 10) {
-    if (is.factor(d) || is.character(d)) {
-        return(TRUE)
-    }
+fdiscrete <- function(d, t = 10, exect = FALSE) {
     if (is.numeric(d)) {
         u <- unique(d)
         if (length(u) <= t) {
             return(TRUE)
         }
-        if (all(abs(u - round(u)) < .Machine$double.eps^0.5)) {
-            return(TRUE)
+
+        if (exect) {
+            if (is.factor(d)) {
+                return(TRUE)
+            }
+            if (is.character(d)) {
+                return(TRUE)
+            }
+            if (is.logical(d)) {
+                return(TRUE)
+            }
+            if (is.integer(u)) {
+                return(TRUE)
+            }
+            if (all(abs(u - round(u)) < .Machine$double.eps^0.5)) {
+                return(TRUE)
+            }
         }
     }
     return(FALSE)
