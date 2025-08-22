@@ -185,45 +185,55 @@ fjcal <- function(J) {
 #' @examples fpkgs(savefile = "my packages.txt")
 #' @examples install.packages(readLines("my packages.txt"))
 fpkgs <- function(savefile = NULL, checkdeps = FALSE, showtime = FALSE) {
-  all_info <- installed.packages()
-  all_pkgs <- all_info[, "Package"]
+    all_info <- installed.packages()
+    all_pkgs <- all_info[, "Package"]
 
-  base_pkgs <- c(rownames(installed.packages(priority = "base")),
-                 rownames(installed.packages(priority = "recommended")))
-  user_pkgs <- setdiff(all_pkgs, base_pkgs)
-  
-  if (showtime) {
-    pkg_paths <- all_info[user_pkgs, "LibPath"]
-    pkg_dirs  <- file.path(pkg_paths, user_pkgs)
-    install_time <- file.info(pkg_dirs)$mtime
-    df <- data.frame(
-      Package = user_pkgs,
-      Installed = install_time,
-      row.names = NULL
+    base_pkgs <- c(
+        rownames(installed.packages(priority = "base")),
+        rownames(installed.packages(priority = "recommended"))
     )
-    print(df[order(df$Installed, decreasing = TRUE), ], row.names = FALSE)
-  } else {
-    cat(user_pkgs, sep = "\n")
-  }
-  
-  if (!is.null(savefile)) {
-    writeLines(user_pkgs, savefile)
-    message("save as ", savefile)
-  }
-  
-  if (checkdeps) {
-    deps <- tools::package_dependencies(user_pkgs,
-                                        db = available.packages(),
-                                        reverse = TRUE)
-    for (pkg in user_pkgs) {
-      if (length(deps[[pkg]]) > 0) {
-        cat("\n", pkg, " dependent:\n  ",
-            paste(deps[[pkg]], collapse = ", "), "\n", sep = "")
-      }
+    user_pkgs <- setdiff(all_pkgs, base_pkgs)
+
+    if (showtime) {
+        pkg_paths <- all_info[user_pkgs, "LibPath"]
+        pkg_dirs <- file.path(pkg_paths, user_pkgs)
+        install_time <- file.info(pkg_dirs)$mtime
+        df <- data.frame(
+            Package = user_pkgs,
+            Installed = install_time,
+            row.names = NULL
+        )
+        print(df[order(df$Installed, decreasing = TRUE), ], row.names = FALSE)
+    } else {
+        cat(user_pkgs, sep = "\n")
     }
-  }
-  
-  invisible(user_pkgs)
+
+    if (!is.null(savefile)) {
+        writeLines(user_pkgs, savefile)
+        message("save as ", savefile)
+    }
+
+    if (checkdeps) {
+        deps <- tools::package_dependencies(
+            user_pkgs,
+            db = available.packages(),
+            reverse = TRUE
+        )
+        for (pkg in user_pkgs) {
+            if (length(deps[[pkg]]) > 0) {
+                cat(
+                    "\n",
+                    pkg,
+                    " dependent:\n  ",
+                    paste(deps[[pkg]], collapse = ", "),
+                    "\n",
+                    sep = ""
+                )
+            }
+        }
+    }
+
+    invisible(user_pkgs)
 }
 
 
@@ -359,7 +369,7 @@ fd <- function(fd.variable, plot = TRUE) {
     colnames(t) <- c("Values", "Frequency")
     t$Percent <- round(t$Frequency / sum(t$Frequency) * 100, 2)
     t$CumFrequency <- cumsum(t$Frequency)
-    t$CumPercent <- round(cumsum(t$Percent), 2)
+    t$CumPercent <- round(cumsum(t$Frequency / sum(t$Frequency) * 100), 2)
     p <- ggplot(t, aes(x = Values, y = Frequency)) +
         geom_bar(stat = "identity", fill = "black") +
         labs(
@@ -447,11 +457,6 @@ fdc <- function(fdc.variable1, fdc.variable2) {
 #' @examples fdp(cars$dist)
 #' @examples fhtml(fdp(cars$dist))
 fdp <- function(fdp.variable, fdp.binwidth = 1) {
-    if (!is.numeric(fdp.variable) || length(fdp.variable) <= 10) {
-        stop(
-            "Input error: Data must be a numeric vector with multiple numbers ( > 10 )."
-        )
-    }
     label <- gsub(".*\\$", "", deparse(substitute(fdp.variable)))
     if (fdiscrete(fdp.variable)) {
         fdp.plot <- ggplot() +
@@ -481,7 +486,7 @@ fdp <- function(fdp.variable, fdp.binwidth = 1) {
             theme_grey()
     }
     print(fdp.plot)
-    print(fd(fdp.variable, plot = FALSE))
+    return(fd(fdp.variable, plot = FALSE))
     invisible(fd(fdp.variable, plot = FALSE))
 }
 
