@@ -791,8 +791,8 @@ fpn <- function(
         )
         t <- data.frame(
             rbind(
-                "No. of events" = as.vector(fpn.crosstable$t[outcome, ]),
-                "No. of participants" = as.vector(colSums(fpn.crosstable$t))
+                "No. of participants" = as.vector(colSums(fpn.crosstable$t)) ,
+                "No. of events" = as.vector(fpn.crosstable$t[outcome, ])
             )
         )
         t$Total <- rowSums(t)
