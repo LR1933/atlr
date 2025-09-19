@@ -890,8 +890,8 @@ fe <- function(
     }
     if (!is.null(fe.rows)) {
         if (is.character(fe.rows)) {
-            t <- t[Factor %in% fe.rows]
-            t[, Factor := factor(Factor, levels = fe.rows)]
+            t <- t[grepl(paste(fe.rows, collapse = "|"), Factor)]
+            t[, Factor := factor(Factor, levels = unique(Factor))]
             setorder(t, Factor)
         } else if (is.numeric(fe.rows)) {
             t <- t[fe.rows]
