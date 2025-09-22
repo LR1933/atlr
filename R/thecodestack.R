@@ -902,7 +902,8 @@ fe <- function(
     }
     c <- intersect(c("Low", "High", "Diff", "Diff."), names(t))
     t[, (c) := lapply(.SD, function(x) sprintf("%.2f", x)), .SDcols = c]
-    print(t[, ..final_cols])
+  
+    return(t[, ..final_cols])
     fcopy(t[, ..final_cols][, 5])
     invisible(t[, ..final_cols])
 }
