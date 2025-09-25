@@ -9,10 +9,9 @@
 # require(rms)
 
 ## Reading #####################################################################
-fp <- function() {
-  library(bit)
-  library(dplyr)
-  message("加载完成：ggplot2, dplyr")
+fnote <- function() {
+
+  message("finished")
 }
 
 ## rounding ####################################################################
