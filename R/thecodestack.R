@@ -8,13 +8,12 @@
 # require(dplyr)
 # require(rms)
 
-
+## Reading #####################################################################
 fp <- function() {
-  library(ggplot2)
+  library(bit)
   library(dplyr)
   message("加载完成：ggplot2, dplyr")
 }
-
 
 ## rounding ####################################################################
 #' Title rounding
