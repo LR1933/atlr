@@ -8,6 +8,14 @@
 # require(dplyr)
 # require(rms)
 
+
+fp <- function() {
+  library(ggplot2)
+  library(dplyr)
+  message("加载完成：ggplot2, dplyr")
+}
+
+
 ## rounding ####################################################################
 #' Title rounding
 #' @param d
