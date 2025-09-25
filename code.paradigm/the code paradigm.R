@@ -280,7 +280,7 @@ Tableone.nonnormal_variables <- c("",
                                   ""
 )
 Tableone.group <- ""
-T1(
+ft(
   dt,
   Tableone.all_varibales,
   Tableone.categorical_variables,
@@ -539,7 +539,6 @@ fpy(dt$pyear, dt$exposure)
 ## linear regression
 fit.ols <- ols(y ~ age + sex , data = dt,x = TRUE)
 
-frr(summary(fit.ols))
 summary(fit.ols)
 ggplot(fit.ols)
 autoplot(fit.ols)
@@ -551,7 +550,7 @@ sqrt(mean(fit.ols$residuals^2)) # Root Mean Square Error
 
 ## estimated marginal means
 emmeans::emm_options(opt.digits = FALSE)
-geo_mean(dt$)
+fgmean(dt$)
 liner_model_results <- lm(log() ~ age + sex  , 
                           data = dt)
 summary(liner_model_results)
@@ -574,7 +573,6 @@ logistic.model.2 <- ~
 
 fit.lrm <- lrm(logistic.model.0, data = dt,x = TRUE, y = TRUE)
 summary(fit.lrm)
-frr(summary(fit.lrm))
 ggplot(fit.lrm)
 anova(fit.lrm)
 predict(fit.lrm)
@@ -616,7 +614,6 @@ survminer::ggcoxzph(survival::cox.zph(fit.cph))
 plot(survival::cox.zph(fit.cph))
 
 summary(fit.cph)
-frr(summary(fit.cph))
 plot(Predict(fit.cph))
 
 anova(fit.cph)
@@ -760,7 +757,7 @@ competing.risk.model.1 <- model.matrix(
 
 
 #### model diagnostics #########################################################
-model <- fit.
+model <- fit
 
 ## multicollinearity
 car::vif(model)
