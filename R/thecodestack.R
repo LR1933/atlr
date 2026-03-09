@@ -1191,6 +1191,7 @@ fe <- function(
 techdt <- function(symbol, from = start, select = close, buffer = 365) {
     from_early <- as.Date(from) - buffer
     data <- tq_get(symbol, from = from_early) %>%
+        tidyr::drop_na(open, high, low, close, volume) %>%
         tq_mutate(
             select = select,
             mutate_fun = SMA,
