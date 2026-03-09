@@ -8,10 +8,13 @@
 # require(dplyr)
 # require(rms)
 
-## Reading #####################################################################
-fnote <- function() {
-
-  message("finished")
+## install #####################################################################
+finstall <- function() {
+    if ("package:atlr" %in% search()) {
+        detach("package:atlr", unload = TRUE)
+    }
+    devtools::install_github("lijiaqi-github/atlr", upgrade = "always")
+    library("atlr")
 }
 
 ## rounding ####################################################################
@@ -104,9 +107,12 @@ fhtml <- function(
             DT::datatable(
                 h,
                 options = list(
+                    scrollX = FALSE,
+                    autoWidth = TRUE,
                     paging = FALSE,
                     searching = FALSE,
-                    info = FALSE
+                    info = FALSE,
+                    dom = "t"
                 ),
                 class = "display compact"
             )
@@ -797,7 +803,7 @@ fpn <- function(
         )
         t <- data.frame(
             rbind(
-                "No. of participants" = as.vector(colSums(fpn.crosstable$t)) ,
+                "No. of participants" = as.vector(colSums(fpn.crosstable$t)),
                 "No. of events" = as.vector(fpn.crosstable$t[outcome, ])
             )
         )
@@ -908,7 +914,7 @@ fe <- function(
     }
     c <- intersect(c("Low", "High", "Diff", "Diff."), names(t))
     t[, (c) := lapply(.SD, function(x) sprintf("%.2f", x)), .SDcols = c]
-  
+
     return(t[, ..final_cols])
     fcopy(t[, ..final_cols][, 5])
     invisible(t[, ..final_cols])
@@ -1180,3 +1186,171 @@ fe <- function(
 #         dec = "."
 #     )
 # }
+
+## stock #######################################################################
+techdt <- function(symbol, from = start, select = close, buffer = 365) {
+    from_early <- as.Date(from) - buffer
+    data <- tq_get(symbol, from = from_early) %>%
+        tq_mutate(
+            select = select,
+            mutate_fun = SMA,
+            n = 20,
+            col_rename = "sma20"
+        ) %>%
+        tq_mutate(
+            select = select,
+            mutate_fun = SMA,
+            n = 50,
+            col_rename = "sma50"
+        ) %>%
+        tq_mutate(
+            select = select,
+            mutate_fun = SMA,
+            n = 200,
+            col_rename = "sma200"
+        ) %>%
+        tq_mutate(
+            select = select,
+            mutate_fun = RSI,
+            n = 14,
+            col_rename = "rsi"
+        ) %>%
+        tq_mutate(select = c(high, low, close), mutate_fun = ADX, n = 14) %>%
+        tq_mutate(select = select, mutate_fun = MACD) %>%
+        tq_mutate(select = select, mutate_fun = BBands, n = 20) %>%
+        tq_mutate(select = c(high, low, close), mutate_fun = ATR, n = 14) %>%
+        rename(trueHigh = ATR, trueLow = ATR..1) %>%
+        mutate(volume20 = TTR::SMA(volume, n = 20)) %>%
+        filter(date >= as.Date(from))
+    data <- setDT(data)
+    num_cols <- names(data)[sapply(data, is.numeric)]
+    data[, (num_cols) := lapply(.SD, round, 4), .SDcols = num_cols]
+    return(data)
+}
+
+plot_tech <- function(
+    dt,
+    stock,
+    which = c("all", "price", "volume", "rsi", "macd")
+) {
+    which <- match.arg(which)
+
+    # Price + SMA + Bollinger Bands
+    p_price <- dt %>%
+        ggplot(aes(x = date)) +
+        geom_line(aes(y = close), linewidth = 0.5) +
+        geom_line(aes(y = sma20, color = "SMA20"), linewidth = 0.4) +
+        geom_line(aes(y = sma50, color = "SMA50"), linewidth = 0.4) +
+        geom_line(aes(y = sma200, color = "SMA200"), linewidth = 1.2) +
+        geom_ribbon(
+            aes(ymin = dn, ymax = up),
+            alpha = 0.1,
+            fill = "steelblue"
+        ) +
+        scale_color_manual(
+            values = c("SMA20" = "green", "SMA50" = "red3", "SMA200" = "red"),
+            breaks = c("SMA20", "SMA50", "SMA200")
+        ) +
+        labs(
+            title = paste(stock, "Technical Analysis"),
+            y = "Price",
+            color = NULL
+        ) +
+        theme_tq(base_size = 16) +
+        theme(
+            legend.position = "inside",
+            legend.position.inside = c(0.02, 0.98),
+            legend.justification = c(0, 1),
+            legend.background = element_rect(fill = alpha("white", 0.6)),
+            axis.title.x = element_blank()
+        )
+
+    # Volume
+    p_vol <- dt %>%
+        mutate(direction = ifelse(close >= open, "up", "down")) %>%
+        ggplot(aes(x = date)) +
+        geom_bar(
+            aes(y = volume / 1000, fill = direction),
+            stat = "identity",
+            width = 1,
+            alpha = 0.6
+        ) +
+        geom_line(aes(y = volume20 / 1000), color = "purple", linewidth = 0.3) +
+        scale_y_continuous(labels = scales::comma) +
+        scale_fill_manual(
+            values = c("up" = "green", "down" = "red3"),
+            guide = "none"
+        ) +
+        labs(y = "Volume, per 1000") +
+        theme_tq(base_size = 16) +
+        theme(axis.title.x = element_blank())
+
+    # RSI
+    p_rsi <- dt %>%
+        ggplot(aes(x = date, y = rsi)) +
+        geom_line(linewidth = 0.4) +
+        geom_hline(
+            yintercept = c(30, 70),
+            linetype = "dashed",
+            color = "red",
+            linewidth = 0.3
+        ) +
+        labs(y = "RSI(14)") +
+        theme_tq(base_size = 16) +
+        theme(axis.title.x = element_blank())
+
+    # MACD
+    hist_colors <- ifelse(dt$macd - dt$signal >= 0, "green4", "red3")
+    p_macd <- dt %>%
+        mutate(histogram = macd - signal) %>%
+        ggplot(aes(x = date)) +
+        geom_bar(
+            aes(y = histogram),
+            stat = "identity",
+            fill = hist_colors,
+            width = 1
+        ) +
+        geom_line(aes(y = macd, color = "MACD"), linewidth = 0.4) +
+        geom_line(aes(y = signal, color = "Signal"), linewidth = 0.4) +
+        scale_color_manual(values = c("MACD" = "blue", "Signal" = "red")) +
+        labs(y = "MACD", color = NULL) +
+        theme_tq(base_size = 16) +
+        theme(
+            legend.position = "inside",
+            legend.position.inside = c(0, 0),
+            legend.justification = c(0, 0),
+            legend.background = element_rect(fill = alpha("white", 0.6)),
+            legend.key.size = unit(0.3, "cm"),
+            axis.title.x = element_blank()
+        )
+    switch(
+        which,
+        price = p_price,
+        volume = p_vol,
+        rsi = p_rsi,
+        macd = p_macd,
+        all = p_price /
+            p_rsi /
+            p_macd /
+            p_vol +
+            patchwork::plot_layout(heights = c(4, 1.5, 1.5, 1))
+    )
+}
+
+
+Monthly.Return <- function(stock, from = start) {
+    data <- tq_get(stock, get = "stock.prices", from = from) %>%
+        tq_transmute(
+            select = adjusted,
+            mutate_fun = periodReturn,
+            period = "monthly"
+        ) %>%
+        filter(date < floor_date(Sys.Date(), "month")) %>%
+        mutate(direction = ifelse(monthly.returns >= 0, "up", "down")) %>%
+        ggplot(aes(x = date, y = monthly.returns, fill = direction)) +
+        geom_bar(stat = "identity") +
+        scale_fill_manual(values = c("up" = "green4", "down" = "red3")) +
+        theme_tq() +
+        theme(legend.position = "none")
+    return(data)
+}

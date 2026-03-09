@@ -1,9 +1,16 @@
-## the code stack ##############################################################
-## 2024/08/01 version ##########################################################
-
-## The global options ##########################################################
-# reset
+## the code paradigm ###########################################################
+## 2026/01/31 version  #########################################################
+## topic: ######################################################################
+## work records ################################################################
+## work date:2026
+## registered participants:
+## remark:
+## data processing procedures ##################################################
+## read data ###################################################################
 rm(list = ls())
+library("atlr")
+# devtools::install_github('lijiaqi-github/atlr')
+# options(prType='html')
 
 # modify number of decimal places displayed
 options(scipen = 10,digits = 10)
@@ -20,8 +27,11 @@ options(default_opts)
 
 ## Read data ###################################################################
 # obtain all file names in a folder 
-folder_path <- "C:///"
-files <- list.files(path = folder_path, pattern = "\\.csv$", full.names = TRUE)
+f_path <- "C:///"
+#files <- list.files(path = fpath, pattern = "\\.csv$", full.names = TRUE)
+#dt <- read_excel(fpath, sheet = "Sheet1")
+#dt <- haven::read_sas(fpath)
+
 
 ## Data processing #############################################################
 # drop quotes
