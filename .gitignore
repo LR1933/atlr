@@ -1,4 +1,28 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
+# ignore everything
+*
+
+# but don't ignore files ending with slash = directories
+!*/
+
+# and allow follow files
+!*.R
+!*.py
+!*.ipynb
+!*.sh
+!*.sas
+!*.Rproj
+!README.md
+!LICENSE
+!requirements.txt
+!environment.yml
+!.gitignore
+
+# but never allow follow files
+.env
+.ipynb_checkpoints/
+__pycache__/
+.DS_Store
+*.log
+
+data/
+raw/
