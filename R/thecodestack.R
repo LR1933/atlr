@@ -620,6 +620,7 @@ fsp <- function(fsp.exposure, fsp.y) {
         data.table(
             Model = m,
             R2 = round(R2, 3),
+            `ME(x-y)` = round(mean(dt$x - dt$y), 3),
             MAE = round(MAE, 3),
             RMSE = round(RMSE, 3),
             `RMSE/MAE` = ifelse(MAE == 0, NA_real_, round(RMSE / MAE, 3)),
