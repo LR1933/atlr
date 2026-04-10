@@ -532,7 +532,8 @@ fsp <- function(fsp.exposure, fsp.y) {
         x = as.numeric(eval(fsp.exposure)),
         y = as.numeric(eval(fsp.y))
     )
-
+    fsp.xmissing <- sum(is.na(fsp.exposure))
+    fsp.ymissing <- sum(is.na(fsp.y))
     dt <- dt[complete.cases(dt)]
     xname <- gsub(".*\\$", "", deparse(substitute(fsp.exposure)))
     yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
@@ -627,11 +628,11 @@ fsp <- function(fsp.exposure, fsp.y) {
     cat(paste0(
         xname,
         " missing is ",
-        sum(is.na(dt$x)),
+        fsp.xmissing,
         ", ",
         yname,
         " missing is ",
-        sum(is.na(dt$y)),
+        fsp.ymissing,
         "\n"
     ))
     invisible(metrics)
