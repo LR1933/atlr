@@ -13,7 +13,11 @@ finstall <- function() {
     if ("package:atlr" %in% search()) {
         detach("package:atlr", unload = TRUE)
     }
-    devtools::install_github("lijiaqi-github/atlr", upgrade = "never")
+    devtools::install_github(
+        "lijiaqi-github/atlr",
+        upgrade = "never",
+        type = "binary"
+    )
     library("atlr")
 }
 
