@@ -527,75 +527,70 @@ fsp <- function(fsp.exposure, fsp.y) {
     if (!is.numeric(fsp.exposure) || !is.numeric(fsp.y)) {
         stop("Input error: Inputed values must be numeric.")
     }
-    fsp.xmissing <- sum(is.na(fsp.exposure))
-    fsp.ymissing <- sum(is.na(fsp.y))
-    fsp.data <- data.table(eval(fsp.exposure), eval(fsp.y))
-    fsp.data <- fsp.data[complete.cases(fsp.data), ]
-    colnames(fsp.data) <- c("fsp.data.exposure", "fsp.data.y")
-    fsp.xname <- gsub(".*\\$", "", deparse(substitute(fsp.exposure)))
-    fsp.yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
-    if (length(unique(fsp.data$fsp.data.y)) > 10) {
-        fsp.fitlinear <-
-            ols(fsp.data$fsp.data.y ~ fsp.data$fsp.data.exposure)
-        fsp.fit3 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.exposure, 3))
-        fsp.fit4 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.exposure, 4))
-        fsp.fit5 <-
-            ols(fsp.data$fsp.data.y ~ rcs(fsp.data$fsp.data.exposure, 5))
-        fsp.data$linear <- predict(fsp.fitlinear)
-        fsp.data$rcs3 <- predict(fsp.fit3)
-        fsp.data$rcs4 <- predict(fsp.fit4)
-        fsp.data$rcs5 <- predict(fsp.fit5)
-    } else {
+
+    dt <- data.table(
+        x = as.numeric(eval(fsp.exposure)),
+        y = as.numeric(eval(fsp.y))
+    )
+
+    dt <- dt[complete.cases(dt)]
+    xname <- gsub(".*\\$", "", deparse(substitute(fsp.exposure)))
+    yname <- gsub(".*\\$", "", deparse(substitute(fsp.y)))
+
+    if (length(unique(dt$y)) <= 10) {
         stop("Input error: Y must be multivalued (>10).")
     }
-    g <- tidyr::gather(
-        fsp.data,
-        key = "model",
-        value = "value",
-        c("linear", "rcs3", "rcs4", "rcs5")
+    # fit models
+    fits <- list(
+        linear = ols(y ~ x, data = dt),
+        rcs3 = ols(y ~ rcs(x, 3), data = dt),
+        rcs4 = ols(y ~ rcs(x, 4), data = dt),
+        rcs5 = ols(y ~ rcs(x, 5), data = dt)
     )
-    p <- ggplot(
-        g,
-        aes(x = fsp.data.exposure, y = fsp.data.y)
-    ) +
+    # predictions
+    preds <- lapply(fits, function(f) as.numeric(predict(f, newdata = dt)))
+    names(preds) <- names(fits)
+
+    pred_dt <- cbind(dt, as.data.table(preds))
+
+    long <- tidyr::pivot_longer(
+        pred_dt,
+        cols = names(preds),
+        names_to = "model",
+        values_to = "pred"
+    )
+    p <- ggplot(long, aes(x = x, y = y)) +
         geom_point(size = 0.5) +
         geom_line(
-            aes(
-                x = fsp.data.exposure,
-                y = value,
-                linetype = model,
-                colour = model
-            ),
-            linewidth = 1.0
+            aes(y = pred, colour = model, linetype = model),
+            linewidth = 1
         ) +
         scale_color_manual(
             values = c(
-                "linear" = "black",
-                "rcs3" = "green",
-                "rcs4" = "red",
-                "rcs5" = "blue"
+                linear = "black",
+                rcs3 = "green",
+                rcs4 = "red",
+                rcs5 = "blue"
             )
         ) +
         scale_linetype_manual(
             values = c(
-                "linear" = "solid",
-                "rcs3" = "solid",
-                "rcs4" = "solid",
-                "rcs5" = "solid"
+                linear = "solid",
+                rcs3 = "solid",
+                rcs4 = "solid",
+                rcs5 = "solid"
             )
         ) +
         labs(
             title = paste0(
                 "y = ",
-                round(coef(fsp.fitlinear)[1], 2),
+                round(coef(fits$linear)[1], 2),
                 " + ",
-                round(coef(fsp.fitlinear)[2], 2),
-                "x"
+                round(coef(fits$linear)[2], 2),
+                " x"
             ),
-            x = as.character(substitute(fsp.xname)),
-            y = as.character(substitute(fsp.yname))
+            x = xname,
+            y = yname
         ) +
         theme_grey() +
         theme(
@@ -603,43 +598,43 @@ fsp <- function(fsp.exposure, fsp.y) {
             axis.title = element_text(size = 10),
             axis.text = element_text(size = 10)
         )
-    t <- data.table(
-        Model = c(
-            "linear",
-            "rcs with 3 konts",
-            "rcs with 4 konts",
-            "rcs with 5 konts"
-        ),
-        R2 = c(
-            round(fsp.fitlinear$stats["R2"], 3),
-            round(fsp.fit3$stats["R2"], 3),
-            round(fsp.fit4$stats["R2"], 3),
-            round(fsp.fit5$stats["R2"], 3)
-        ),
-        MAE = c(
-            round(mean(abs(fsp.data$fsp.data.y - fsp.data$linear)), 3),
-            round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs3)), 3),
-            round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs4)), 3),
-            round(mean(abs(fsp.data$fsp.data.y - fsp.data$rcs5)), 3)
-        ),
-        RMSE = c(
-            round(
-                sqrt(mean((fsp.data$fsp.data.y - fsp.data$linear)^2)),
-                3
-            ),
-            round(sqrt(mean((fsp.data$fsp.data.y - fsp.data$rcs3)^2)), 3),
-            round(sqrt(mean((fsp.data$fsp.data.y - fsp.data$rcs4)^2)), 3),
-            round(sqrt(mean((fsp.data$fsp.data.y - fsp.data$rcs5)^2)), 3)
-        ),
-        check.names = FALSE
-    )
+
+    # compute metrics
+    metrics <- rbindlist(lapply(names(preds), function(m) {
+        pr <- pred_dt[[m]]
+        R2 <- if (!is.null(fits[[m]]$stats)) {
+            as.numeric(fits[[m]]$stats["R2"])
+        } else {
+            NA_real_
+        }
+        MAE <- mean(abs(pred_dt$y - pr))
+        RMSE <- sqrt(mean((pred_dt$y - pr)^2))
+        est <- round(DescTools::CCC(dt$x, dt$y)$rho.c$est, 3)
+        lwr.ci <- round(DescTools::CCC(dt$x, dt$y)$rho.c$lwr.ci, 3)
+        upr.ci <- round(DescTools::CCC(dt$x, dt$y)$rho.c$upr.ci, 3)
+        data.table(
+            Model = m,
+            R2 = round(R2, 3),
+            MAE = round(MAE, 3),
+            RMSE = round(RMSE, 3),
+            `RMSE/MAE` = ifelse(MAE == 0, NA_real_, round(RMSE / MAE, 3)),
+            `Lin's CCC` = paste0(est, " (", lwr.ci, ", ", upr.ci, ")")
+        )
+    }))
+
     print(p)
-    print(knitr::kable(t))
-    t <- as.data.frame(t)
-    t[, 2:4] <- lapply(t[, 2:4], function(column) {
-        sprintf("%.3f", column)
-    })
-    invisible(t)
+    print(knitr::kable(metrics))
+    cat(paste0(
+        xname,
+        " missing is ",
+        sum(is.na(dt$x)),
+        ", ",
+        yname,
+        " missing is ",
+        sum(is.na(dt$y)),
+        "\n"
+    ))
+    invisible(metrics)
 }
 
 
