@@ -1356,3 +1356,120 @@ Monthly.Return <- function(stock, from = start) {
         theme(legend.position = "none")
     return(data)
 }
+
+
+## health checkup visualization ################################################
+fhealth_report <- function(dt, output_file = NULL) {
+    df <- as.data.frame(dt)
+    date_cols <- grep("^\\d{4}-\\d{2}", names(df), value = TRUE)
+
+    # if readxl converted date headers to Excel serial numbers (e.g. "44713"),
+    # convert them back to "YYYY-MM" format
+    if (length(date_cols) == 0) {
+        non_meta <- setdiff(names(df), c("items", "lw", "up"))
+        serial_candidates <- non_meta[grepl("^\\d{4,5}$", non_meta)]
+        if (length(serial_candidates) > 0) {
+            new_names <- format(
+                as.Date(as.numeric(serial_candidates), origin = "1899-12-30"),
+                "%Y-%m"
+            )
+            names(df)[match(serial_candidates, names(df))] <- new_names
+            date_cols <- new_names
+        }
+    }
+
+    if (length(date_cols) == 0) {
+        warning(
+            "No date columns found. Column names are: ",
+            paste(names(df), collapse = ", ")
+        )
+        return(invisible(NULL))
+    }
+
+    plots_list <- lapply(seq_len(nrow(df)), function(i) {
+        item_name <- as.character(df$items[i])
+        lw_val <- suppressWarnings(as.numeric(df$lw[i]))
+        up_val <- suppressWarnings(as.numeric(df$up[i]))
+
+        values <- suppressWarnings(as.numeric(df[i, date_cols]))
+        plot_df <- data.frame(
+            date = date_cols,
+            value = values,
+            stringsAsFactors = FALSE
+        )
+        plot_df <- plot_df[!is.na(plot_df$value), , drop = FALSE]
+
+        if (nrow(plot_df) == 0) {
+            return(NULL)
+        }
+
+        plot_df$is_alert <- FALSE
+        if (!is.na(lw_val)) {
+            plot_df$is_alert <- plot_df$is_alert | (plot_df$value < lw_val)
+        }
+        if (!is.na(up_val)) {
+            plot_df$is_alert <- plot_df$is_alert | (plot_df$value > up_val)
+        }
+        plot_df$point_color <- ifelse(plot_df$is_alert, "red", "#1f77b4")
+
+        p <- plotly::plot_ly(plot_df, x = ~date)
+        p <- plotly::add_lines(
+            p,
+            y = ~value,
+            line = list(color = "#e0e0e0"),
+            showlegend = FALSE
+        )
+        p <- plotly::add_markers(
+            p,
+            y = ~value,
+            marker = list(color = ~point_color, size = 10),
+            hoverinfo = "text",
+            text = ~ paste0(
+                item_name,
+                "<br>Date: ",
+                date,
+                "<br>Value: ",
+                value
+            ),
+            showlegend = FALSE
+        )
+        p <- plotly::layout(
+            p,
+            title = list(text = item_name, font = list(size = 14), x = 0),
+            xaxis = list(title = "", tickangle = -45),
+            yaxis = list(title = ""),
+            margin = list(t = 40, b = 40, l = 40, r = 20)
+        )
+        return(p)
+    })
+
+    plots_list <- plots_list[!sapply(plots_list, is.null)]
+
+    html_content <- htmltools::tags$div(
+        style = "font-family: sans-serif; padding: 20px;",
+        htmltools::tags$h2("Summary", style = "text-align: center;"),
+        htmltools::tags$div(
+            style = "display: flex; flex-wrap: wrap; justify-content: center;",
+            lapply(plots_list, function(p) {
+                htmltools::tags$div(
+                    style = "width: 450px; height: 350px; margin: 10px; border: 1px solid #eee;",
+                    p
+                )
+            })
+        )
+    )
+
+    if (!is.null(output_file)) {
+        htmltools::save_html(html_content, output_file)
+    }
+
+    html_content
+}
+
+healthcheckup <- readxl::read_excel(
+    file.path(
+        "C:\\Users\\lijia\\OneDrive - 近畿大学\\Document\\Health checkups\\healthcheckup.xlsx"
+    ),
+    sheet = "dt"
+)
+fhealth_report(healthcheckup)
